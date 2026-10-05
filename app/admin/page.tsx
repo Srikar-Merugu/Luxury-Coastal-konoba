@@ -83,6 +83,20 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         <CatchEditor initial={catchOfDay} />
       </section>
 
+      <section className={card} aria-labelledby="qr">
+        <h2 id="qr" className={h2}>
+          Table QR codes
+        </h2>
+        <form action="/admin/qr" className="mt-6 flex flex-wrap items-end gap-4">
+          <label className="block w-40">
+            <span className="block text-xs uppercase tracking-[0.15em] text-ink-soft">Number of tables</span>
+            <input name="tables" type="number" min={1} max={60} defaultValue={12} className="mt-1 block w-full border border-deep/20 bg-white px-3 py-2 text-ink focus:border-deep focus:outline-none" />
+          </label>
+          <button className="bg-deep px-6 py-3 text-sm text-stone hover:bg-sea">Make printable cards</button>
+        </form>
+        <p className="mt-4 text-xs text-ink-soft">Each card opens the menu in the guest’s phone language and greets them with the table number.</p>
+      </section>
+
       <section className={card} aria-labelledby="season">
         <h2 id="season" className={h2}>
           Open, closed and seats

@@ -174,3 +174,15 @@ main:has(> section[data-cta]) + footer[data-site-footer] {
 main:has(> section[data-cta]) + footer[data-site-footer] [data-footer-fade] {
   display: block;
 }
+
+/* Menu dietary filter (components/MenuTools.tsx) */
+#menu-list[data-diet="vegan"] [data-dish]:not([data-tags~="vegan"]),
+#menu-list[data-diet="vegetarian"] [data-dish]:not([data-tags~="vegetarian"]),
+#menu-list[data-diet="gluten-free"] [data-dish]:not([data-tags~="gluten-free"]) {
+  display: none;
+}
+#menu-list[data-diet="vegan"] section[data-cat]:not(:has([data-tags~="vegan"])),
+#menu-list[data-diet="vegetarian"] section[data-cat]:not(:has([data-tags~="vegetarian"])),
+#menu-list[data-diet="gluten-free"] section[data-cat]:not(:has([data-tags~="gluten-free"])) {
+  display: none;
+}

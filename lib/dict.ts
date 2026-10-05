@@ -196,6 +196,9 @@ const en = {
     intro: "The fish changes every day with the catch. Prices in euro, VAT included. Ask us about allergies; the kitchen adapts most dishes.",
     signature: "House favourite",
     tags: { vegan: "Vegan", vegetarian: "Vegetarian", "gluten-free": "Gluten-free" },
+    filterAll: "Everything",
+    filterLabel: "Show dishes",
+    table: (n: string) => `Table ${n} · welcome! Ask us what came in on the boat today.`,
   },
   footer: {
     tagline: "Fish, fire and the sea. Lučica, island of Cres.",
@@ -404,6 +407,9 @@ const hr: Dict = {
     intro: "Riba se mijenja svaki dan, ovisno o ulovu. Cijene su u eurima, PDV uključen. Pitajte nas za alergije, kuhinja prilagođava većinu jela.",
     signature: "Najdraže gostima",
     tags: { vegan: "Vegansko", vegetarian: "Vegetarijansko", "gluten-free": "Bez glutena" },
+    filterAll: "Sve",
+    filterLabel: "Prikaži jela",
+    table: (n: string) => `Stol ${n} · dobro došli! Pitajte nas što je danas stiglo brodom.`,
   },
   footer: {
     tagline: "Riba, žar i more. Lučica, otok Cres.",
@@ -610,6 +616,9 @@ const de: Dict = {
     intro: "Der Fisch wechselt täglich mit dem Fang. Preise in Euro inklusive MwSt. Fragen Sie uns nach Allergien, die Küche passt die meisten Gerichte an.",
     signature: "Hausfavorit",
     tags: { vegan: "Vegan", vegetarian: "Vegetarisch", "gluten-free": "Glutenfrei" },
+    filterAll: "Alles",
+    filterLabel: "Gerichte zeigen",
+    table: (n: string) => `Tisch ${n} · willkommen! Fragen Sie uns, was heute mit dem Boot kam.`,
   },
   footer: {
     tagline: "Fisch, Feuer und das Meer. Lučica, Insel Cres.",

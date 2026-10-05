@@ -6,6 +6,7 @@ import type { PhotoKey } from "@/lib/photos";
 import Link from "next/link";
 import { TableCta } from "./coast/TableCta";
 import { Wave } from "./coast/Wave";
+import { DietFilter } from "./MenuTools";
 import { Pic } from "./Pic";
 
 /** Inner-page opener: full-bleed photo, caps title, wave edge into the page. */
@@ -100,9 +101,9 @@ function TagPill({ label }: { tag: Tag; label: string }) {
 export function MenuList({ locale, menu }: { locale: Locale; menu: MenuCategory[] }) {
   const t = getDict(locale).menuPage;
   return (
-    <div className="container-k pb-24 md:pb-36">
-      <nav aria-label={t.eyebrow} className="sticky top-0 z-30 -mx-4 border-b border-deep/10 bg-stone/[0.97] px-4 sm:-mx-8 sm:px-8 xl:-mx-14 xl:px-14">
-        <ul className="flex gap-8 overflow-x-auto whitespace-nowrap py-5 [scrollbar-width:none]">
+    <div id="menu-list" className="container-k pb-24 md:pb-36">
+      <nav aria-label={t.eyebrow} className="sticky top-0 z-30 -mx-4 flex flex-col border-b border-deep/10 bg-stone/[0.97] px-4 sm:-mx-8 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:gap-8 xl:-mx-14 xl:px-14">
+        <ul className="flex gap-8 overflow-x-auto whitespace-nowrap pt-5 [scrollbar-width:none] lg:py-5">
           {menu.map((c, i) => (
             <li key={c.id}>
               <a href={`#${c.id}`} className="group flex items-baseline gap-2 text-[0.92rem] text-ink-soft transition-colors hover:text-deep">
@@ -112,9 +113,12 @@ export function MenuList({ locale, menu }: { locale: Locale; menu: MenuCategory[
             </li>
           ))}
         </ul>
+        <div className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
+          <DietFilter locale={locale} target="menu-list" />
+        </div>
       </nav>
       {menu.map((c, ci) => (
-        <section key={c.id} id={c.id} aria-labelledby={`${c.id}-h`} className="grid scroll-mt-24 gap-10 border-b border-deep/10 py-16 last:border-0 md:py-24 lg:grid-cols-12">
+        <section key={c.id} id={c.id} data-cat aria-labelledby={`${c.id}-h`} className="grid scroll-mt-24 gap-10 border-b border-deep/10 py-16 last:border-0 md:py-24 lg:grid-cols-12">
           <div className="lg:col-span-4">
             <div className="lg:sticky lg:top-28">
               <p className="label text-ochre-ink">0{ci + 1}</p>
@@ -126,7 +130,14 @@ export function MenuList({ locale, menu }: { locale: Locale; menu: MenuCategory[
           </div>
           <ul className="lg:col-span-7 lg:col-start-6">
             {c.items.map((item) => (
-              <li key={item.name.en} className="border-t border-deep/10 py-7 first:border-0 first:pt-0 lg:first:pt-2" data-reveal>
+              <li
+                key={item.name.en}
+                data-dish
+                // vegan dishes are vegetarian too
+                data-tags={[...item.tags, ...(item.tags.includes("vegan") ? ["vegetarian"] : [])].join(" ")}
+                className="border-t border-deep/10 py-7 first:border-0 first:pt-0 lg:first:pt-2"
+                data-reveal
+              >
                 <div className="flex items-baseline gap-4">
                   <h3 className="font-display text-[1.85rem] leading-tight text-deep">{item.name[locale]}</h3>
                   <span aria-hidden className="mb-2 flex-1 border-b border-dotted border-deep/25" />
