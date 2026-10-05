@@ -6,9 +6,7 @@ import type { PhotoKey } from "@/lib/photos";
 import Link from "next/link";
 import { TableCta } from "./coast/TableCta";
 import { Wave } from "./coast/Wave";
-import { dishKey } from "@/lib/order";
 import { DietFilter } from "./MenuTools";
-import { AddDish } from "./TableOrder";
 import { Pic } from "./Pic";
 
 /** Inner-page opener: full-bleed photo, caps title, wave edge into the page. */
@@ -131,7 +129,7 @@ export function MenuList({ locale, menu }: { locale: Locale; menu: MenuCategory[
             </div>
           </div>
           <ul className="lg:col-span-7 lg:col-start-6">
-            {c.items.map((item, ii) => (
+            {c.items.map((item) => (
               <li
                 key={item.name.en}
                 data-dish
@@ -146,9 +144,6 @@ export function MenuList({ locale, menu }: { locale: Locale; menu: MenuCategory[
                   <p className="shrink-0 tabular-nums text-ink">{item.price} €</p>
                 </div>
                 <p className="mt-2 max-w-lg leading-relaxed text-ink-soft">{item.desc[locale]}</p>
-                <div className="mt-3 empty:hidden">
-                  <AddDish locale={locale} dishKey={dishKey(c.id, ii)} name={item.name[locale]} price={item.price} />
-                </div>
                 {(item.tags.length > 0 || item.signature) && (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {item.signature && <span className="label rounded-full bg-deep px-2.5 py-1 text-[0.58rem] text-stone">★ {t.signature}</span>}

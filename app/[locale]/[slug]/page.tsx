@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
 import { BookingForm } from "@/components/BookingForm";
 import { CoastBar } from "@/components/CoastBar";
-import { TableWelcome } from "@/components/MenuTools";
-import { TableOrder } from "@/components/TableOrder";
 import { Hours } from "@/components/Hours";
 import { Pic } from "@/components/Pic";
 import { BookingCta, Directions, FaqList, MenuList, PageHero } from "@/components/sections";
@@ -51,12 +48,7 @@ export default async function Page({ params }: Props) {
         <>
           <JsonLd data={[menuJsonLd(locale, menu), crumbs]} />
           <PageHero locale={locale} photo="grill" eyebrow={t.menuPage.eyebrow} title={t.menuPage.title} intro={t.menuPage.intro} />
-          <Suspense>
-            <TableWelcome locale={locale} />
-          </Suspense>
-          <TableOrder locale={locale}>
-            <MenuList locale={locale} menu={menu} />
-          </TableOrder>
+          <MenuList locale={locale} menu={menu} />
           <BookingCta locale={locale} />
         </>
       );

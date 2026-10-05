@@ -1,7 +1,6 @@
 "use client";
 
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import type { Tag } from "@/lib/content";
 import { getDict } from "@/lib/dict";
@@ -41,16 +40,5 @@ export function DietFilter({ locale, target }: { locale: Locale; target: string 
         </button>
       ))}
     </div>
-  );
-}
-
-/** "Table 4 · welcome" when the menu was opened from a table's QR code. */
-export function TableWelcome({ locale }: { locale: Locale }) {
-  const table = useSearchParams().get("table");
-  if (!table || !/^\d{1,3}$/.test(table)) return null;
-  return (
-    <p role="status" className="container-k">
-      <span className="mt-8 inline-flex rounded-full bg-deep px-5 py-2.5 text-sm text-stone">{getDict(locale).menuPage.table(table)}</span>
-    </p>
   );
 }
