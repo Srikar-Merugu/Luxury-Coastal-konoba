@@ -1,17 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { venue } from "@/lib/content";
+import { venue, type Season } from "@/lib/content";
 import { getDict } from "@/lib/dict";
 import type { Locale } from "@/lib/i18n";
 import { seasonFor, zagrebNow } from "@/lib/season";
+import { track } from "@vercel/analytics";
+import { useSiteData } from "./SiteData";
 
 type Seating = "terrace" | "indoor" | "any";
 
-function slotsFor(dateIso: string): string[] {
+function slotsFor(seasons: Season[], dateIso: string): string[] {
   if (!dateIso) return [];
   const [y, m, d] = dateIso.split("-").map(Number);
-  const season = seasonFor(dateIso.slice(5));
+  const season = seasonFor(seasons, dateIso.slice(5));
   if (!season) return [];
   const hours = season.hours[new Date(y, m - 1, d).getDay()];
   if (!hours) return [];
@@ -24,10 +26,12 @@ function slotsFor(dateIso: string): string[] {
   return out;
 }
 
-function firstBookableDate(): string {
+function firstBookableDate(seasons: Season[]): string {
   const now = zagrebNow();
-  const today = `${now.year}-${now.mmdd}`;
-  return seasonFor(now.mmdd) ? today : `${now.mmdd > "10-31" ? now.year + 1 : now.year}-04-01`;
+  if (seasonFor(seasons, now.mmdd)) return `${now.year}-${now.mmdd}`;
+  // next season start, this year or next
+  const next = seasons.map((s) => s.from).sort().find((from) => from > now.mmdd);
+  return next ? `${now.year}-${next}` : `${now.year + 1}-${seasons.map((s) => s.from).sort()[0] ?? "04-01"}`;
 }
 
 const field =
@@ -36,15 +40,16 @@ const label = "label text-ink-soft";
 
 export function BookingForm({ locale }: { locale: Locale }) {
   const t = getDict(locale).book;
-  const minDate = useMemo(firstBookableDate, []);
+  const { seasons } = useSiteData();
+  const minDate = useMemo(() => firstBookableDate(seasons), [seasons]);
   const [date, setDate] = useState(minDate);
   const [party, setParty] = useState(2);
   const [largeGroup, setLargeGroup] = useState(false);
   const [seating, setSeating] = useState<Seating>("terrace");
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
 
-  const slots = slotsFor(date);
-  const inSeason = !!seasonFor(date.slice(5));
+  const slots = slotsFor(seasons, date);
+  const inSeason = !!seasonFor(seasons, date.slice(5));
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -63,6 +68,9 @@ export function BookingForm({ locale }: { locale: Locale }) {
         }),
       });
       if (!res.ok) throw new Error(String(res.status));
+      const event = { party_size: party, seating, large_group: largeGroup || party >= 9, locale };
+      track("booking_submitted", event);
+      (window as Window & { gtag?: (...a: unknown[]) => void }).gtag?.("event", "booking_submitted", event);
       setState("done");
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
@@ -82,6 +90,8 @@ export function BookingForm({ locale }: { locale: Locale }) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-12">
+      {/* honeypot for bots; hidden from people and screen readers */}
+      <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden className="absolute -left-[9999px] h-px w-px opacity-0" />
       <div className="grid gap-8 sm:grid-cols-3">
         <label className="block">
           <span className={label}>{t.date}</span>

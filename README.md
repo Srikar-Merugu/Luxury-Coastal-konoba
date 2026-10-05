@@ -37,26 +37,53 @@ harbour, boat).
 
 ```bash
 npm install
+cp .env.example .env.local   # optional: without keys the site uses lib/content.ts
 npm run dev
 ```
 
 Production build: `npm run build && npm start`.
+
+## Backend (Supabase, Resend, /admin)
+
+1. In the Supabase SQL editor run `supabase/schema.sql`, then `supabase/seed.sql`
+   (regenerate it from `lib/content.ts` with `node --experimental-strip-types scripts/seed-sql.mts`).
+2. Authentication → Users → add the owner login, then
+   `insert into admins values ('konoba', '<user uuid>');`
+3. Set the env vars from `.env.example` locally and in Vercel.
+
+What happens then:
+
+- **Booking:** the form posts to `/api/booking` → row in `booking_requests` (status
+  `pending`) → email to `BOOKING_INBOX` and a "we received your request" email to the
+  guest in their language. RLS: the public can only insert, never read.
+- **/admin** (Supabase email + password, only users in `admins`): table requests with
+  Confirm / Decline (emails the guest), the **catch of the day** editor, and a
+  "closed now" switch with an optional reason.
+- **Menu, hours and FAQ** are edited in the Supabase table editor. Pages re-render at
+  most once a minute, and /admin changes publish at once. No redeploy.
+- **Analytics:** Vercel Analytics (enable it in the project) and GA4 when
+  `NEXT_PUBLIC_GA_ID` is set (Consent Mode, cookies denied by default). Both receive a
+  `booking_submitted` event.
 
 ## Where things live
 
 | Path | What |
 | --- | --- |
 | `app/[locale]/` | Pages (home + `[slug]` for menu, book, visit, about, faq) |
+| `app/admin/` | Owner admin |
+| `app/api/booking/` | Booking endpoint |
 | `components/coast/` | Home sections |
-| `lib/content.ts` | Venue, menu, seasons, catch of the day, FAQ (mirrors the shared Supabase schema) |
-| `lib/data.ts` | Data access — swap these bodies for Supabase queries |
+| `lib/content.ts` | Built-in content and the fallback when Supabase is not set |
+| `lib/data.ts` | Reads from Supabase, falls back to `lib/content.ts` |
+| `lib/email.ts` | Booking emails (HR / EN / DE) |
 | `lib/dict*.ts` | All copy in HR / EN / DE |
+| `supabase/` | Schema with RLS, and seed data |
 | `public/photos`, `public/cut`, `public/video` | AI-generated imagery and loops |
 | `public/fonts/README.md` | How to drop in the licensed display fonts |
 
 ## Not done yet
 
-- Booking API validates only; Supabase insert + Resend emails + `/admin` come with the
-  shared starter.
+- Supabase project, Resend domain and keys, and the `konoba.demo.kyrostudio.eu` domain
+  (Kishlay: Supabase, auth and deployment).
 - Licensed display fonts (see `public/fonts/README.md`); free look-alikes are used until then.
-- HR/DE copy needs a native-speaker review; Lighthouse pass after deploy.
+- HR/DE copy needs a native-speaker review; Lighthouse pass after deploy; real-phone tests.

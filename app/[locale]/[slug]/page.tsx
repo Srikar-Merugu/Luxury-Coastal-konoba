@@ -13,6 +13,8 @@ import { breadcrumbJsonLd, faqJsonLd, JsonLd, menuJsonLd, pageMetadata, restaura
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
 export const dynamicParams = false;
+// Menu, hours and FAQ come from Supabase; re-render at most once a minute.
+export const revalidate = 60;
 
 export function generateStaticParams() {
   return locales.flatMap((locale) => Object.values(slugs[locale]).map((slug) => ({ locale, slug })));
@@ -43,7 +45,7 @@ export default async function Page({ params }: Props) {
       const menu = await getMenu();
       return (
         <>
-          <JsonLd data={[menuJsonLd(locale), crumbs]} />
+          <JsonLd data={[menuJsonLd(locale, menu), crumbs]} />
           <PageHero locale={locale} photo="grill" eyebrow={t.menuPage.eyebrow} title={t.menuPage.title} intro={t.menuPage.intro} />
           <MenuList locale={locale} menu={menu} />
           <BookingCta locale={locale} />
@@ -78,10 +80,10 @@ export default async function Page({ params }: Props) {
       const seasons = await getSeasons();
       return (
         <>
-          <JsonLd data={[restaurantJsonLd(locale), crumbs]} />
+          <JsonLd data={[restaurantJsonLd(locale, seasons), crumbs]} />
           <PageHero locale={locale} photo="aerial" eyebrow={t.visit.eyebrow} title={t.visit.title} />
           <Directions locale={locale} />
-          <Hours locale={locale} seasons={seasons} />
+          <Hours locale={locale} />
           <BookingCta locale={locale} photo="terrace" />
         </>
       );
@@ -124,7 +126,7 @@ export default async function Page({ params }: Props) {
       const faqs = await getFaqs();
       return (
         <>
-          <JsonLd data={[faqJsonLd(locale), crumbs]} />
+          <JsonLd data={[faqJsonLd(locale, faqs), crumbs]} />
           <PageHero locale={locale} photo="grove" eyebrow={t.faq.eyebrow} title={t.faq.title} />
           <FaqList items={faqs} locale={locale} />
           <BookingCta locale={locale} />

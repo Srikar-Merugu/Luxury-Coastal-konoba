@@ -4,18 +4,20 @@ import { useEffect, useState } from "react";
 import { getDict } from "@/lib/dict";
 import type { Locale } from "@/lib/i18n";
 import { getStatus, type Status } from "@/lib/season";
+import { useSiteData } from "./SiteData";
 
 /** `?preview=off-season` forces the closed-for-the-season state for demos and screenshots. */
 export function useStatus(): Status | null {
+  const { seasons, override } = useSiteData();
   const [status, setStatus] = useState<Status | null>(null);
   useEffect(() => {
     const preview = new URLSearchParams(window.location.search).get("preview");
     const update = () =>
-      setStatus(preview === "off-season" ? { kind: "off-season", reopens: `${new Date().getFullYear() + 1}-04-01` } : getStatus());
+      setStatus(preview === "off-season" ? { kind: "off-season", reopens: `${new Date().getFullYear() + 1}-04-01` } : getStatus(seasons, override));
     update();
     const id = setInterval(update, 60_000);
     return () => clearInterval(id);
-  }, []);
+  }, [seasons, override]);
   return status;
 }
 
@@ -44,6 +46,7 @@ export function statusLabel(status: Status, locale: Locale) {
 
 export function SeasonStatus({ locale, tone = "dark", className = "" }: { locale: Locale; tone?: "light" | "dark"; className?: string }) {
   const status = useStatus();
+  const note = useSiteData().override.note[locale];
   const open = status?.kind === "open";
   return (
     <p
@@ -57,6 +60,7 @@ export function SeasonStatus({ locale, tone = "dark", className = "" }: { locale
         <span className={`relative inline-flex h-2 w-2 rounded-full ${open ? "bg-emerald-400" : "bg-coral"}`} />
       </span>
       {status ? statusLabel(status, locale) : "\u00a0"}
+      {status?.kind === "override" && note && <span className="opacity-70">· {note}</span>}
     </p>
   );
 }

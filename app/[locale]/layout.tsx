@@ -5,7 +5,11 @@ import { Cormorant, Inter, Poiret_One, Sacramento } from "next/font/google";
 import { notFound } from "next/navigation";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { Analytics } from "@vercel/analytics/next";
+import Script from "next/script";
 import { Motion } from "@/components/Motion";
+import { SiteDataProvider } from "@/components/SiteData";
+import { getClosedOverride, getSeasons } from "@/lib/data";
 import { venue } from "@/lib/content";
 import { getDict } from "@/lib/dict";
 import { htmlLang, isLocale, locales } from "@/lib/i18n";
@@ -44,6 +48,8 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", images: ["/photos/hero-poster.jpg"] },
 };
 
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID?.replace(/[^A-Z0-9-]/gi, "");
+
 export const viewport: Viewport = { themeColor: "#fbf8f2" };
 
 export function generateStaticParams() {
@@ -54,6 +60,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const t = getDict(locale);
+  const [seasons, override] = await Promise.all([getSeasons(), getClosedOverride()]);
   return (
     <html lang={htmlLang[locale]} className={`${cormorant.variable} ${poiret.variable} ${inter.variable} ${sacramento.variable}`}>
       <body className="antialiased">
@@ -61,10 +68,22 @@ export default async function LocaleLayout({ children, params }: { children: Rea
         <a href="#main" className="sr-only z-[70] bg-ochre px-4 py-2 font-medium text-deep focus:not-sr-only focus:fixed focus:left-4 focus:top-4">
           {t.skip}
         </a>
-        <Header locale={locale} />
-        <main id="main">{children}</main>
-        <Footer locale={locale} />
+        <SiteDataProvider value={{ seasons, override }}>
+          <Header locale={locale} />
+          <main id="main">{children}</main>
+          <Footer locale={locale} />
+        </SiteDataProvider>
         <Motion />
+        <Analytics />
+        {GA_ID && (
+          <>
+            <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
+            {/* Consent Mode v2: no cookies until a consent banner grants them; GA4 still gets cookieless pings. */}
+            <Script id="ga4" strategy="afterInteractive">
+              {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}window.gtag=gtag;gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied'});gtag('js',new Date());gtag('config','${GA_ID}');`}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   );

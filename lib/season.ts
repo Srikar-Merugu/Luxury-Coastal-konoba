@@ -1,4 +1,6 @@
-import { closedOverride, seasons, type Season } from "./content";
+import type { L, Season } from "./content";
+
+export type Override = { active: boolean; note: L };
 
 export type Status =
   | { kind: "open"; season: Season; closes: string }
@@ -29,14 +31,14 @@ export function zagrebNow(date = new Date()) {
   };
 }
 
-export function seasonFor(mmdd: string): Season | null {
+export function seasonFor(seasons: Season[], mmdd: string): Season | null {
   return seasons.find((s) => mmdd >= s.from && mmdd <= s.to) ?? null;
 }
 
-export function getStatus(date = new Date()): Status {
-  if (closedOverride.active) return { kind: "override" };
+export function getStatus(seasons: Season[], override: Override, date = new Date()): Status {
+  if (override.active) return { kind: "override" };
   const now = zagrebNow(date);
-  const season = seasonFor(now.mmdd);
+  const season = seasonFor(seasons, now.mmdd);
   if (!season) {
     const first = seasons[0].from;
     const year = now.mmdd > first ? now.year + 1 : now.year;

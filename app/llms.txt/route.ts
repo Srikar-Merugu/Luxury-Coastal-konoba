@@ -1,9 +1,11 @@
-import { faqs, menu, seasons, venue } from "@/lib/content";
+import { venue } from "@/lib/content";
+import { getFaqs, getMenu, getSeasons } from "@/lib/data";
 import { href } from "@/lib/i18n";
 
-export const dynamic = "force-static";
+export const revalidate = 300;
 
-export function GET() {
+export async function GET() {
+  const [faqs, menu, seasons] = await Promise.all([getFaqs(), getMenu(), getSeasons()]);
   const hours = seasons
     .map((s) => {
       const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]

@@ -6,6 +6,7 @@ import { getDict } from "@/lib/dict";
 import type { Locale } from "@/lib/i18n";
 import { seasonFor, zagrebNow } from "@/lib/season";
 import { SeasonStatus } from "./SeasonStatus";
+import { useSiteData } from "./SiteData";
 
 const order = [1, 2, 3, 4, 5, 6, 0];
 const nowWord: Record<Locale, string> = { en: "Now", hr: "Sada", de: "Jetzt" };
@@ -27,13 +28,14 @@ function fmtDate(mmdd: string, locale: Locale) {
   return new Intl.DateTimeFormat(locale === "hr" ? "hr-HR" : locale, { day: "numeric", month: "long" }).format(new Date(2026, m - 1, d));
 }
 
-export function Hours({ locale, seasons }: { locale: Locale; seasons: Season[] }) {
+export function Hours({ locale }: { locale: Locale }) {
   const t = getDict(locale).hours;
+  const { seasons } = useSiteData();
   const [current, setCurrent] = useState<string | null>(null);
   useEffect(() => {
     const off = new URLSearchParams(location.search).get("preview") === "off-season";
-    setCurrent(off ? null : (seasonFor(zagrebNow().mmdd)?.id ?? null));
-  }, []);
+    setCurrent(off ? null : (seasonFor(seasons, zagrebNow().mmdd)?.id ?? null));
+  }, [seasons]);
 
   return (
     <section className="bg-deep-2 py-24 text-stone md:py-36" aria-labelledby="hours-title">

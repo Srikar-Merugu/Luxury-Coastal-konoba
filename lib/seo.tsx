@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { faqs, menu, seasons, venue } from "./content";
+import { venue, type L, type MenuCategory, type Season } from "./content";
 import { getDict } from "./dict";
 import { alternates, href, htmlLang, type Locale, type PageKey } from "./i18n";
 
@@ -16,7 +16,7 @@ export function pageMetadata(locale: Locale, page: PageKey): Metadata {
 
 const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-export function restaurantJsonLd(locale: Locale) {
+export function restaurantJsonLd(locale: Locale, seasons: Season[]) {
   const year = new Date().getFullYear();
   return {
     "@context": "https://schema.org",
@@ -54,7 +54,7 @@ export function restaurantJsonLd(locale: Locale) {
   };
 }
 
-export function menuJsonLd(locale: Locale) {
+export function menuJsonLd(locale: Locale, menu: MenuCategory[]) {
   return {
     "@context": "https://schema.org",
     "@type": "Menu",
@@ -74,7 +74,7 @@ export function menuJsonLd(locale: Locale) {
   };
 }
 
-export function faqJsonLd(locale: Locale) {
+export function faqJsonLd(locale: Locale, faqs: { q: L; a: L }[]) {
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
