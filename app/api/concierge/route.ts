@@ -5,7 +5,8 @@ export const dynamic = "force-dynamic";
 
 const MAX_TURNS = 12;
 const MAX_CHARS = 600;
-const MAX_TOKENS = 400;
+// Room for the answer plus a thinking model's reasoning (which counts against the limit).
+const MAX_TOKENS = 1500;
 
 // Per-visitor limit (per server instance): 20 messages in 10 minutes.
 const hits = new Map<string, number[]>();
@@ -54,14 +55,14 @@ async function pickModels(base: string, key: string, prefer: RegExp[], skip: Reg
   return models;
 }
 
-const openAiCompatible = (base: string, pinned: string | undefined, prefer: RegExp[], skip: RegExp) => async (key: string, system: string, messages: Msg[]) => {
+const openAiCompatible = (base: string, pinned: string | undefined, prefer: RegExp[], skip: RegExp, extra: Record<string, unknown> = {}) => async (key: string, system: string, messages: Msg[]) => {
   const candidates = pinned ? [pinned] : await pickModels(base, key, prefer, skip);
   let last: Response | null = null;
   for (const model of candidates) {
     last = await fetch(`${base}/chat/completions`, {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model, max_tokens: MAX_TOKENS, stream: true, messages: [{ role: "system", content: system }, ...messages] }),
+      body: JSON.stringify({ model, max_tokens: MAX_TOKENS, stream: true, ...extra, messages: [{ role: "system", content: system }, ...messages] }),
     });
     // missing, unsupported, rate-limited or overloaded model: try the provider's next one
     if (![400, 404, 429, 503].includes(last.status)) return last;
@@ -81,6 +82,8 @@ const providers: Provider[] = [
       process.env.GEMINI_MODEL,
       [/^gemini-[\d.]+-flash$/, /^gemini-[\d.]+-flash-lite$/, /^gemini-.*flash/, /^gemini-[\d.]+-pro$/],
       /image|tts|audio|live|embed|vision|aqa|learnlm|gemma|computer|robotics|native/,
+      // Gemini flash models think before answering; keep it brief so the reply isn't cut short
+      { reasoning_effort: "low" },
     ),
     text: openAiText,
   },
@@ -155,21 +158,28 @@ export async function POST(req: Request) {
     const decoder = new TextDecoder();
     const encoder = new TextEncoder();
     let buffer = "";
+    const emit = (lines: string[], controller: TransformStreamDefaultController<Uint8Array>) => {
+      for (const line of lines) {
+        if (!line.startsWith("data:")) continue;
+        const data = line.slice(5).trim();
+        if (!data || data === "[DONE]") continue;
+        try {
+          const text = p.text(JSON.parse(data));
+          if (text) controller.enqueue(encoder.encode(text));
+        } catch {}
+      }
+    };
     const stream = upstream.body.pipeThrough(
       new TransformStream<Uint8Array, Uint8Array>({
         transform(chunk, controller) {
           buffer += decoder.decode(chunk, { stream: true });
           const lines = buffer.split("\n");
           buffer = lines.pop() ?? "";
-          for (const line of lines) {
-            if (!line.startsWith("data:")) continue;
-            const data = line.slice(5).trim();
-            if (!data || data === "[DONE]") continue;
-            try {
-              const text = p.text(JSON.parse(data));
-              if (text) controller.enqueue(encoder.encode(text));
-            } catch {}
-          }
+          emit(lines, controller);
+        },
+        // the last event may arrive without a trailing newline
+        flush(controller) {
+          emit([buffer + decoder.decode()], controller);
         },
       }),
     );
