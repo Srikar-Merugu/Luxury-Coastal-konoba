@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { venue } from "@/lib/content";
+import { venueWhatsApp } from "@/lib/whatsapp";
+import { WhatsAppIcon } from "./icons";
 import { getDict } from "@/lib/dict";
 import { coast } from "@/lib/dict-coast";
 import { href, localeNames, locales, type Locale, type PageKey } from "@/lib/i18n";
@@ -86,10 +88,8 @@ export function Footer({ locale }: { locale: Locale }) {
                   </Link>
                 ))}
               </nav>
-              <a href={`https://wa.me/${venue.phoneHref.replace("+", "")}`} aria-label="WhatsApp" className="hover:opacity-70">
-                <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor" aria-hidden>
-                  <path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 1.9s.8 2.2.9 2.4c.1.1 1.6 2.5 4 3.5 1.5.6 2.1.7 2.8.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.5-.2z" />
-                </svg>
+              <a href={venueWhatsApp()} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="hover:opacity-70">
+                <WhatsAppIcon />
               </a>
               <a href={`tel:${venue.phoneHref}`} aria-label={venue.phone} className="hover:opacity-70">
                 <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>

@@ -1,12 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { venue, type Season } from "@/lib/content";
 import { getDict } from "@/lib/dict";
 import type { Locale } from "@/lib/i18n";
 import { seasonFor, zagrebNow } from "@/lib/season";
 import { track } from "@vercel/analytics";
+import { freeAt, seatsFor, type Capacity, type Usage } from "@/lib/capacity";
+import { venueWhatsApp } from "@/lib/whatsapp";
+import { formatDate } from "./SeasonStatus";
 import { useSiteData } from "./SiteData";
+import { WhatsAppIcon } from "./icons";
 
 type Seating = "terrace" | "indoor" | "any";
 
@@ -46,9 +50,25 @@ export function BookingForm({ locale }: { locale: Locale }) {
   const [party, setParty] = useState(2);
   const [largeGroup, setLargeGroup] = useState(false);
   const [seating, setSeating] = useState<Seating>("terrace");
-  const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const [time, setTime] = useState("");
+  const [state, setState] = useState<"idle" | "sending" | "done" | "error" | "full">("idle");
 
   const slots = slotsFor(seasons, date);
+
+  // Seats already requested on the chosen day, so each time shows what is left.
+  const [avail, setAvail] = useState<{ capacity: Capacity; usage: Usage[] } | null>(null);
+  useEffect(() => {
+    setAvail(null);
+    if (!date) return;
+    const ctrl = new AbortController();
+    fetch(`/api/availability?date=${date}`, { signal: ctrl.signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d && setAvail(d))
+      .catch(() => {});
+    return () => ctrl.abort();
+  }, [date, state]);
+  const left = (slot: string) => (avail ? seatsFor(freeAt(slot, avail.usage, avail.capacity), seating) : null);
+  const chosenLeft = slots.includes(time) ? left(time) : null;
   const inSeason = !!seasonFor(seasons, date.slice(5));
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -67,6 +87,10 @@ export function BookingForm({ locale }: { locale: Locale }) {
           locale,
         }),
       });
+      if (res.status === 409) {
+        setState("full");
+        return;
+      }
       if (!res.ok) throw new Error(String(res.status));
       const event = { party_size: party, seating, large_group: largeGroup || party >= 9, locale };
       track("booking_submitted", event);
@@ -99,13 +123,20 @@ export function BookingForm({ locale }: { locale: Locale }) {
         </label>
         <label className="block">
           <span className={label}>{t.time}</span>
-          <select name="time" required className={field} disabled={!slots.length} defaultValue="">
+          <select name="time" required className={field} disabled={!slots.length} value={slots.includes(time) ? time : ""} onChange={(e) => setTime(e.target.value)}>
             <option value="" disabled>
               —
             </option>
-            {slots.map((s) => (
-              <option key={s}>{s}</option>
-            ))}
+            {slots.map((s) => {
+              const n = left(s);
+              const full = n !== null && n < party;
+              return (
+                <option key={s} value={s} disabled={full}>
+                  {s}
+                  {n === null ? "" : full ? ` · ${t.slotFull}` : n <= 12 ? ` · ${t.seatsLeft(n)}` : ""}
+                </option>
+              );
+            })}
           </select>
         </label>
         <label className="block">
@@ -131,6 +162,11 @@ export function BookingForm({ locale }: { locale: Locale }) {
       {date && !slots.length && (
         <p role="alert" className="-mt-6 border-l-2 border-coral pl-4 text-sm text-coral">
           {inSeason ? t.closedDay : t.offSeason}
+        </p>
+      )}
+      {chosenLeft !== null && chosenLeft >= party && chosenLeft <= 12 && (
+        <p className="-mt-6 text-sm text-sea">
+          {time} · {t.seatsLeft(chosenLeft)}
         </p>
       )}
 
@@ -190,6 +226,11 @@ export function BookingForm({ locale }: { locale: Locale }) {
         </label>
       </div>
 
+      {state === "full" && (
+        <p role="alert" className="border-l-2 border-coral pl-4 text-sm text-coral">
+          {t.fullError}
+        </p>
+      )}
       {state === "error" && (
         <p role="alert" className="border-l-2 border-coral pl-4 text-sm text-coral">
           {t.error}
@@ -211,6 +252,28 @@ export function BookingForm({ locale }: { locale: Locale }) {
           </a>
         </p>
       </div>
+
+      <a
+        href={venueWhatsApp(
+          t.whatsappText(
+            formatDate(date, locale),
+            slots.includes(time) ? time : "",
+            party,
+            t.whatsappSeating[seating],
+          ),
+        )}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="group flex items-center justify-between gap-4 border-t border-deep/15 pt-8 text-ink"
+      >
+        <span>
+          <span className="label block text-ink-soft">{t.whatsapp}</span>
+          <span className="mt-1 block font-display text-2xl text-deep">{t.whatsappCta}</span>
+        </span>
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#1f7a4d] text-white transition-transform duration-500 group-hover:scale-110">
+          <WhatsAppIcon />
+        </span>
+      </a>
     </form>
   );
 }

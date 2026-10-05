@@ -157,3 +157,41 @@ create policy "own rows" on admins for select to authenticated using (user_id = 
 -- Only signed-in users need the admin check (used by the policies above and /admin).
 revoke execute on function is_site_admin(text) from public, anon;
 grant execute on function is_site_admin(text) to authenticated;
+
+/* ---------- seats left, owner push alerts ---------- */
+
+alter table site_settings
+  add column if not exists terrace_seats int not null default 40 check (terrace_seats between 0 and 500),
+  add column if not exists indoor_seats int not null default 24 check (indoor_seats between 0 and 500),
+  add column if not exists seating_minutes int not null default 120 check (seating_minutes between 30 and 360);
+
+-- Seats taken per time and area for one day. Totals only, never guest details.
+create or replace function slot_usage(site text, day date)
+returns table (slot text, seating text, seats bigint)
+language sql stable security definer set search_path = public as $$
+  select time, seating, sum(party_size)
+  from booking_requests
+  where site_id = site and date = day and status <> 'declined'
+  group by time, seating;
+$$;
+revoke execute on function slot_usage(text, date) from public;
+grant execute on function slot_usage(text, date) to anon, authenticated;
+
+create table if not exists push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  site_id text not null,
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  endpoint text not null unique,
+  p256dh text not null,
+  auth text not null,
+  created_at timestamptz not null default now()
+);
+alter table push_subscriptions enable row level security;
+drop policy if exists "admin manages own" on push_subscriptions;
+create policy "admin manages own" on push_subscriptions for all to authenticated
+  using (is_site_admin(site_id) and user_id = auth.uid())
+  with check (is_site_admin(site_id) and user_id = auth.uid());
+
+-- Server-side settings nobody can read through the API (no policies)
+create table if not exists private_config (key text primary key, value text not null);
+alter table private_config enable row level security;

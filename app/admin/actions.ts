@@ -114,10 +114,19 @@ export async function saveCatch(_: FormState, form: FormData): Promise<FormState
 
 export async function saveSeasonState(_: FormState, form: FormData): Promise<FormState> {
   const supabase = await requireAdmin();
-  const update: Record<string, string | boolean> = { closed_override: form.get("closed") === "on" };
+  const seats = (k: string, min: number, max: number, fallback: number) => {
+    const n = Math.round(Number(form.get(k)));
+    return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+  };
+  const update: Record<string, string | boolean | number> = {
+    closed_override: form.get("closed") === "on",
+    terrace_seats: seats("terrace_seats", 0, 500, 40),
+    indoor_seats: seats("indoor_seats", 0, 500, 24),
+    seating_minutes: seats("seating_minutes", 30, 360, 120),
+  };
   for (const l of L3) update[`closed_note_${l}`] = String(form.get(`closed_note_${l}`) ?? "").slice(0, 300);
   const { error } = await supabase.from("site_settings").update(update).eq("site_id", SITE_ID);
   if (error) return { error: error.message };
   publish();
-  return { ok: update.closed_override ? "The site now shows “closed”." : "The site follows the normal hours again." };
+  return { ok: update.closed_override ? "Saved. The site now shows “closed”." : "Saved. The site follows the normal hours." };
 }

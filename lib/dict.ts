@@ -152,6 +152,14 @@ const en = {
     offSeason: "We are closed for the season. Requests open for dates from 1 April.",
     orCall: "Prefer to call?",
     closedDay: "We are closed on that day. Please pick another date.",
+    seatsLeft: (n: number) => (n === 1 ? "1 seat left" : `${n} seats left`),
+    slotFull: "full",
+    fullError: "Sorry, that time has just filled up. Please choose another time or area.",
+    whatsapp: "Prefer WhatsApp?",
+    whatsappCta: "Message us on WhatsApp",
+    whatsappSeating: { terrace: "on the terrace", indoor: "inside", any: "" },
+    whatsappText: (date: string, time: string, party: number, seating: string) =>
+      `Hello! I'd like to book a table for ${party} on ${date}${time ? ` at ${time}` : ""}${seating ? `, ${seating}` : ""}. Thank you!`,
   },
   about: {
     eyebrow: "Our story",
@@ -338,6 +346,14 @@ const hr: Dict = {
     offSeason: "Zatvoreni smo do sezone. Upite primamo za datume od 1. travnja.",
     orCall: "Radije biste nazvali?",
     closedDay: "Taj dan ne radimo. Molimo odaberite drugi datum.",
+    seatsLeft: (n: number) => `slobodnih mjesta: ${n}`,
+    slotFull: "popunjeno",
+    fullError: "Nažalost, taj se termin upravo popunio. Odaberite drugo vrijeme ili mjesto.",
+    whatsapp: "Radije WhatsApp?",
+    whatsappCta: "Pišite nam na WhatsApp",
+    whatsappSeating: { terrace: "na terasi", indoor: "unutra", any: "" },
+    whatsappText: (date: string, time: string, party: number, seating: string) =>
+      `Pozdrav! Želio/la bih rezervirati stol za ${party} ${party >= 2 && party <= 4 ? "osobe" : "osoba"} ${date}${time ? ` u ${time}` : ""}${seating ? `, ${seating}` : ""}. Hvala!`,
   },
   about: {
     eyebrow: "O nama",
@@ -522,6 +538,14 @@ const de: Dict = {
     offSeason: "Wir sind in der Saisonpause. Anfragen sind für Termine ab dem 1. April möglich.",
     orCall: "Lieber anrufen?",
     closedDay: "An diesem Tag haben wir Ruhetag. Bitte wählen Sie ein anderes Datum.",
+    seatsLeft: (n: number) => (n === 1 ? "noch 1 Platz frei" : `noch ${n} Plätze frei`),
+    slotFull: "ausgebucht",
+    fullError: "Diese Uhrzeit ist leider gerade ausgebucht. Bitte wählen Sie eine andere Zeit oder einen anderen Platz.",
+    whatsapp: "Lieber per WhatsApp?",
+    whatsappCta: "Schreiben Sie uns auf WhatsApp",
+    whatsappSeating: { terrace: "auf der Terrasse", indoor: "drinnen", any: "" },
+    whatsappText: (date: string, time: string, party: number, seating: string) =>
+      `Hallo! Ich möchte einen Tisch für ${party} ${party === 1 ? "Person" : "Personen"} am ${date}${time ? ` um ${time} Uhr` : ""}${seating ? `, ${seating}` : ""} reservieren. Danke!`,
   },
   about: {
     eyebrow: "Über uns",

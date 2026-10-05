@@ -8,7 +8,8 @@ import { cache } from "react";
 import * as local from "./content";
 import type { CatchItem, L, MenuCategory, Season, Tag } from "./content";
 import { photos, type PhotoKey } from "./photos";
-import { publicClient, SITE_ID, supabaseConfigured } from "./supabase";
+import type { Capacity, Usage } from "./capacity";
+import { publicClient, SITE_ID, supabaseConfigured, writeClient } from "./supabase";
 
 type Row = Record<string, unknown>;
 
@@ -113,3 +114,24 @@ export const getCatchOfDay = cache(async () => {
     items,
   };
 });
+
+/** Seats per area and how long one sitting holds a table. */
+export const getCapacity = cache(async (): Promise<Capacity> => {
+  const s = await getSettings();
+  return {
+    terrace: Number(s?.terrace_seats ?? 40),
+    indoor: Number(s?.indoor_seats ?? 24),
+    minutes: Number(s?.seating_minutes ?? 120),
+  };
+});
+
+/** Seats already requested per time and area on one day (totals only, always fresh). */
+export async function getUsage(day: string): Promise<Usage[]> {
+  if (!supabaseConfigured) return [];
+  const { data, error } = await writeClient().rpc("slot_usage", { site: SITE_ID, day });
+  if (error) {
+    console.error("[data] slot_usage failed", error);
+    return [];
+  }
+  return (data as { slot: string; seating: string; seats: number }[]).map((u) => ({ slot: u.slot, seating: u.seating, seats: Number(u.seats) }));
+}

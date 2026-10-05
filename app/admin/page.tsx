@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getCatchOfDay, getClosedOverride } from "@/lib/data";
+import { getCapacity, getCatchOfDay, getClosedOverride } from "@/lib/data";
 import { SITE_ID, supabaseConfigured } from "@/lib/supabase";
 import { currentAdmin } from "@/lib/supabase-server";
 import { signOut } from "./actions";
@@ -52,7 +52,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const show = (await searchParams).show === "all" ? "all" : "open";
   let query = supabase.from("booking_requests").select("*").eq("site_id", SITE_ID).order("created_at", { ascending: false }).limit(200);
   if (show === "open") query = query.eq("status", "pending");
-  const [{ data: bookings, error }, catchOfDay, override] = await Promise.all([query, getCatchOfDay(), getClosedOverride()]);
+  const [{ data: bookings, error }, catchOfDay, override, capacity] = await Promise.all([query, getCatchOfDay(), getClosedOverride(), getCapacity()]);
   const list = (bookings ?? []) as BookingRow[];
 
   return (
@@ -85,9 +85,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 
       <section className={card} aria-labelledby="season">
         <h2 id="season" className={h2}>
-          Open or closed
+          Open, closed and seats
         </h2>
-        <SeasonForm initial={override} />
+        <SeasonForm initial={override} capacity={capacity} />
         <p className="mt-6 text-xs text-ink-soft">
           Seasons, weekly hours, menu and FAQ are edited in the Supabase table editor (tables <code>seasons</code>,{" "}
           <code>opening_hours</code>, <code>menu_items</code>, <code>faqs</code>). Changes show on the site within a minute, no redeploy.

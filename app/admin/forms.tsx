@@ -3,6 +3,8 @@
 import { useActionState, useState } from "react";
 import type { CatchItem, L } from "@/lib/content";
 import { photos, type PhotoKey } from "@/lib/photos";
+import { guestWhatsApp } from "@/lib/whatsapp";
+import { WhatsAppIcon } from "@/components/icons";
 import { decideBooking, saveCatch, saveSeasonState, signIn, type FormState } from "./actions";
 
 const input = "mt-1 block w-full border border-deep/20 bg-white px-3 py-2 text-ink focus:border-deep focus:outline-none";
@@ -148,7 +150,7 @@ export function CatchEditor({ initial }: { initial: Catch }) {
   );
 }
 
-export function SeasonForm({ initial }: { initial: { active: boolean; note: L } }) {
+export function SeasonForm({ initial, capacity }: { initial: { active: boolean; note: L }; capacity: { terrace: number; indoor: number; minutes: number } }) {
   const [state, action, pending] = useActionState(saveSeasonState, undefined);
   return (
     <form action={action} className="mt-6 space-y-6">
@@ -166,6 +168,21 @@ export function SeasonForm({ initial }: { initial: { active: boolean; note: L } 
             <input name={`closed_note_${l}`} defaultValue={initial.note[l]} className={input} />
           </label>
         ))}
+      </div>
+      <div className="grid gap-4 border-t border-deep/10 pt-6 sm:grid-cols-3">
+        <label className="block">
+          <span className={lbl}>Terrace seats</span>
+          <input name="terrace_seats" type="number" min={0} max={500} defaultValue={capacity.terrace} className={input} />
+        </label>
+        <label className="block">
+          <span className={lbl}>Indoor seats</span>
+          <input name="indoor_seats" type="number" min={0} max={500} defaultValue={capacity.indoor} className={input} />
+        </label>
+        <label className="block">
+          <span className={lbl}>Table time (minutes)</span>
+          <input name="seating_minutes" type="number" min={30} max={360} step={15} defaultValue={capacity.minutes} className={input} />
+        </label>
+        <p className="text-xs text-ink-soft sm:col-span-3">Guests see “seats left” for each time, and full times can’t be booked.</p>
       </div>
       <div className="flex items-center gap-6">
         <Submit pending={pending}>Save</Submit>
@@ -191,6 +208,13 @@ export type BookingRow = {
   created_at: string;
 };
 
+/** Opening line for the owner's WhatsApp to a guest, in the guest's language. */
+const waGreeting: Record<string, (b: BookingRow, day: string) => string> = {
+  hr: (b, d) => `Pozdrav ${b.name}, ovdje Konoba Plavi Kamen. Vezano za vaš upit za stol (${d}, ${b.time}, ${b.party_size} os.): `,
+  en: (b, d) => `Hello ${b.name}, this is Konoba Plavi Kamen about your table request (${d}, ${b.time}, ${b.party_size} people): `,
+  de: (b, d) => `Hallo ${b.name}, hier ist die Konoba Plavi Kamen zu Ihrer Tischanfrage (${d}, ${b.time} Uhr, ${b.party_size} Pers.): `,
+};
+
 const fmtDay = (iso: string) =>
   new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`));
 
@@ -214,7 +238,16 @@ export function BookingList({ bookings, emptyText }: { bookings: BookingRow[]; e
                 {b.large_group && <span className="ml-2 rounded bg-ochre/20 px-2 py-0.5 text-xs uppercase tracking-wider text-deep">Large group</span>}
               </p>
               <p className="mt-1 text-sm text-ink-soft">
-                {b.seating} · <a href={`tel:${b.phone}`}>{b.phone}</a> · <a href={`mailto:${b.email}`}>{b.email}</a> · {b.locale.toUpperCase()} · received{" "}
+                {b.seating} · <a href={`tel:${b.phone}`}>{b.phone}</a> ·{" "}
+                <a
+                  href={guestWhatsApp(b.phone, (waGreeting[b.locale] ?? waGreeting.en)(b, fmtDay(b.date)))}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-medium text-[#1f7a4d] hover:underline"
+                >
+                  <WhatsAppIcon className="h-3.5 w-3.5" /> WhatsApp
+                </a>{" "}
+                · <a href={`mailto:${b.email}`}>{b.email}</a> · {b.locale.toUpperCase()} · received{" "}
                 {new Date(b.created_at).toLocaleString("en-GB", { timeZone: "Europe/Zagreb", dateStyle: "short", timeStyle: "short" })}
               </p>
               {b.note && <p className="mt-2 text-sm italic text-ink">“{b.note}”</p>}

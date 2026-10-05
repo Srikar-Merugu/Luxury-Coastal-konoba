@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { guestMail, ownerMail, sendMail, type Booking } from "@/lib/email";
+import { freeAt, seatsFor } from "@/lib/capacity";
+import { getCapacity, getUsage } from "@/lib/data";
 import { isLocale } from "@/lib/i18n";
 import { SITE_ID, supabaseConfigured, writeClient } from "@/lib/supabase";
 
@@ -47,6 +49,11 @@ export async function POST(req: Request) {
   if (errors.length) return NextResponse.json({ error: "validation", fields: errors }, { status: 422 });
 
   if (supabaseConfigured) {
+    // Re-check seats at the moment of booking, in case the slot filled up meanwhile.
+    const [cap, usage] = await Promise.all([getCapacity(), getUsage(booking.date)]);
+    if (booking.party_size > seatsFor(freeAt(booking.time, usage, cap), booking.seating)) {
+      return NextResponse.json({ error: "full" }, { status: 409 });
+    }
     const { error } = await writeClient()
       .from("booking_requests")
       .insert({ ...booking, site_id: SITE_ID, status: "pending" });
