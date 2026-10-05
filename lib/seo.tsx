@@ -24,6 +24,7 @@ export function restaurantJsonLd(locale: Locale, seasons: Season[]) {
     "@id": `${venue.url}/#restaurant`,
     name: venue.name,
     url: `${venue.url}${href(locale, "home")}`,
+    image: [`${venue.url}/photos/terrace.jpg`, `${venue.url}/photos/grill.jpg`, `${venue.url}/photos/hero-poster.jpg`],
     telephone: venue.phone,
     email: venue.email,
     priceRange: venue.priceRange,
