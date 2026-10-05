@@ -7,8 +7,9 @@ import type { Locale } from "@/lib/i18n";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
-/** Turns site paths (/en/book) and web links in an answer into links. */
-function Linkified({ text }: { text: string }) {
+/** Turns site paths (/en/book) and web links in an answer into links; tidies stray markdown. */
+function Linkified({ text: raw }: { text: string }) {
+  const text = raw.replace(/\[([^\]]*)\]\(([^)\s]+)\)/g, "$2").replace(/\*\*([^*]+)\*\*/g, "$1");
   const parts = text.split(/(https?:\/\/[^\s)]+|\/(?:hr|en|de)\/[a-z-]+)/g);
   return (
     <>
