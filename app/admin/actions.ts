@@ -130,3 +130,34 @@ export async function saveSeasonState(_: FormState, form: FormData): Promise<For
   publish();
   return { ok: update.closed_override ? "Saved. The site now shows “closed”." : "Saved. The site follows the normal hours." };
 }
+
+type PushSub = { endpoint: string; keys: { p256dh: string; auth: string } };
+
+/** Remember this phone/browser for new-booking alerts. */
+export async function savePushSubscription(sub: PushSub): Promise<FormState> {
+  const { supabase, user, allowed } = await currentAdmin();
+  if (!user || !allowed) return { error: "You are signed out. Reload and sign in again." };
+  if (!sub?.endpoint?.startsWith("https://") || !sub.keys?.p256dh || !sub.keys?.auth) return { error: "This browser gave an invalid subscription." };
+  // one row per endpoint: replace if the same browser subscribes again
+  await supabase.from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
+  const { error } = await supabase
+    .from("push_subscriptions")
+    .insert({ site_id: SITE_ID, endpoint: sub.endpoint, p256dh: sub.keys.p256dh, auth: sub.keys.auth });
+  return error ? { error: error.message } : { ok: "Alerts are on for this device." };
+}
+
+export async function removePushSubscription(endpoint: string): Promise<FormState> {
+  const { supabase, user, allowed } = await currentAdmin();
+  if (!user || !allowed) return { error: "You are signed out." };
+  await supabase.from("push_subscriptions").delete().eq("endpoint", endpoint);
+  return { ok: "Alerts are off for this device." };
+}
+
+/** Sends "Alerts are on ✓" to this admin's own devices. */
+export async function sendTestPush(): Promise<FormState> {
+  const { supabase, user, allowed } = await currentAdmin();
+  if (!user || !allowed) return { error: "You are signed out." };
+  const { data, error } = await supabase.functions.invoke("booking-push", { body: { test: true, site: SITE_ID } });
+  if (error) return { error: `Could not send: ${error.message}` };
+  return data?.sent ? { ok: "Test alert sent. Check your phone." } : { error: "No device is subscribed yet." };
+}

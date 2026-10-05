@@ -4,7 +4,7 @@ import { SITE_ID, supabaseConfigured } from "@/lib/supabase";
 import { currentAdmin } from "@/lib/supabase-server";
 import { signOut } from "./actions";
 import { Dashboard, zagrebDay } from "./Dashboard";
-import { BookingList, CatchEditor, LoginForm, SeasonForm, type BookingRow } from "./forms";
+import { BookingList, CatchEditor, LoginForm, PushAlerts, SeasonForm, type BookingRow } from "./forms";
 
 export const dynamic = "force-dynamic";
 
@@ -97,6 +97,16 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           Catch of the day
         </h2>
         <CatchEditor initial={catchOfDay} />
+      </section>
+
+      <section className={card} aria-labelledby="alerts">
+        <h2 id="alerts" className={h2}>
+          Phone alerts
+        </h2>
+        <p className="mt-3 max-w-prose text-sm text-ink-soft">
+          Get a notification on this phone the moment a guest sends a table request. Turn it on once on each phone or computer you use.
+        </p>
+        <PushAlerts />
       </section>
 
       <section className={card} aria-labelledby="qr">

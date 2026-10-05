@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import type { CatchItem, L } from "@/lib/content";
 import { photos, type PhotoKey } from "@/lib/photos";
 import { guestWhatsApp } from "@/lib/whatsapp";
 import { WhatsAppIcon } from "@/components/icons";
-import { decideBooking, saveCatch, saveSeasonState, signIn, type FormState } from "./actions";
+import { VAPID_PUBLIC_KEY } from "@/lib/push";
+import { decideBooking, removePushSubscription, saveCatch, savePushSubscription, saveSeasonState, sendTestPush, signIn, type FormState } from "./actions";
 
 const input = "mt-1 block w-full border border-deep/20 bg-white px-3 py-2 text-ink focus:border-deep focus:outline-none";
 const lbl = "block text-xs uppercase tracking-[0.15em] text-ink-soft";
@@ -279,5 +280,106 @@ export function BookingList({ bookings, emptyText }: { bookings: BookingRow[]; e
         ))}
       </ul>
     </>
+  );
+}
+
+function keyBytes(base64: string) {
+  const pad = "=".repeat((4 - (base64.length % 4)) % 4);
+  const raw = atob((base64 + pad).replace(/-/g, "+").replace(/_/g, "/"));
+  return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+}
+
+type PushState = "checking" | "unsupported" | "needs-install" | "denied" | "off" | "on";
+
+/** Turns new-booking alerts on or off for this phone or computer. */
+export function PushAlerts() {
+  const [state, setState] = useState<PushState>("checking");
+  const [msg, setMsg] = useState<FormState>(undefined);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone;
+      if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+        setState(ios && !standalone ? "needs-install" : "unsupported");
+        return;
+      }
+      if (Notification.permission === "denied") return setState("denied");
+      const reg = await navigator.serviceWorker.register("/admin-sw.js", { scope: "/admin" });
+      const sub = await reg.pushManager.getSubscription();
+      setState(sub ? "on" : "off");
+    })().catch(() => setState("unsupported"));
+  }, []);
+
+  async function turnOn() {
+    setBusy(true);
+    setMsg(undefined);
+    try {
+      if ((await Notification.requestPermission()) !== "granted") {
+        setState("denied");
+        return;
+      }
+      const reg = await navigator.serviceWorker.register("/admin-sw.js", { scope: "/admin" });
+      await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(VAPID_PUBLIC_KEY) });
+      const res = await savePushSubscription(sub.toJSON() as Parameters<typeof savePushSubscription>[0]);
+      setMsg(res);
+      if (res?.ok) {
+        setState("on");
+        setMsg(await sendTestPush());
+      }
+    } catch (e) {
+      setMsg({ error: `Could not turn on alerts: ${(e as Error).message}` });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function turnOff() {
+    setBusy(true);
+    const reg = await navigator.serviceWorker.getRegistration("/admin");
+    const sub = await reg?.pushManager.getSubscription();
+    if (sub) {
+      await removePushSubscription(sub.endpoint);
+      await sub.unsubscribe();
+    }
+    setState("off");
+    setMsg({ ok: "Alerts are off for this device." });
+    setBusy(false);
+  }
+
+  const btn = "bg-deep px-6 py-3 text-sm text-stone hover:bg-sea disabled:opacity-50";
+  return (
+    <div className="mt-6 space-y-4">
+      {state === "checking" && <p className="text-sm text-ink-soft">Checking this device…</p>}
+      {state === "needs-install" && (
+        <p className="max-w-prose text-sm text-ink">
+          On iPhone, alerts work from the home-screen app: tap <strong>Share</strong> → <strong>Add to Home Screen</strong>, open
+          “Plavi Kamen” from your home screen, sign in, and come back here.
+        </p>
+      )}
+      {state === "unsupported" && <p className="text-sm text-ink-soft">This browser can’t show alerts. Try Chrome, Edge, Firefox or Safari.</p>}
+      {state === "denied" && (
+        <p className="max-w-prose text-sm text-coral">Notifications are blocked for this site. Allow them in the browser’s site settings, then reload.</p>
+      )}
+      {state === "off" && (
+        <button type="button" onClick={turnOn} disabled={busy} className={btn}>
+          {busy ? "Turning on…" : "Turn on alerts on this device"}
+        </button>
+      )}
+      {state === "on" && (
+        <div className="flex flex-wrap items-center gap-4">
+          <span className="text-sm font-semibold text-emerald-700">● Alerts are on for this device</span>
+          <button type="button" onClick={async () => setMsg(await sendTestPush())} className="text-sm text-deep underline">
+            Send a test alert
+          </button>
+          <button type="button" onClick={turnOff} disabled={busy} className="text-sm text-ink-soft underline">
+            Turn off
+          </button>
+        </div>
+      )}
+      <Status state={msg} />
+    </div>
   );
 }

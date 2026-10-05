@@ -195,3 +195,22 @@ create policy "admin manages own" on push_subscriptions for all to authenticated
 -- Server-side settings nobody can read through the API (no policies)
 create table if not exists private_config (key text primary key, value text not null);
 alter table private_config enable row level security;
+
+-- Push alerts: the booking-push edge function (supabase/functions/booking-push)
+-- runs for every new request. VAPID keys live in private_config
+-- (vapid_public, vapid_private, vapid_subject).
+alter table booking_requests add column if not exists push_sent_at timestamptz;
+create extension if not exists pg_net with schema extensions;
+create or replace function notify_new_booking() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  perform net.http_post(
+    url := 'https://<project-ref>.supabase.co/functions/v1/booking-push',
+    body := jsonb_build_object('booking_id', new.id),
+    headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', 'Bearer <anon key>')
+  );
+  return new;
+end $$;
+revoke execute on function notify_new_booking() from public, anon, authenticated;
+drop trigger if exists booking_push on booking_requests;
+create trigger booking_push after insert on booking_requests for each row execute function notify_new_booking();
