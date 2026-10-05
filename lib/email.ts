@@ -24,11 +24,12 @@ export type Booking = {
 
 type Mail = { to: string; subject: string; text: string; replyTo?: string };
 
-export async function sendMail(mail: Mail): Promise<boolean> {
+/** Sends one email; never throws. `error` says why it was not sent. */
+export async function sendMail(mail: Mail): Promise<{ ok: boolean; error?: string }> {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
     console.warn(`[email] RESEND_API_KEY not set, skipped: "${mail.subject}" → ${mail.to}`);
-    return false;
+    return { ok: false, error: "email is not set up (RESEND_API_KEY missing)" };
   }
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -41,8 +42,14 @@ export async function sendMail(mail: Mail): Promise<boolean> {
       ...(mail.replyTo && { reply_to: mail.replyTo }),
     }),
   });
-  if (!res.ok) console.error(`[email] Resend ${res.status}: ${await res.text()}`);
-  return res.ok;
+  if (res.ok) return { ok: true };
+  const body = await res.text();
+  console.error(`[email] Resend ${res.status}: ${body}`);
+  let reason = body;
+  try {
+    reason = JSON.parse(body).message ?? body;
+  } catch {}
+  return { ok: false, error: `Resend: ${reason}` };
 }
 
 const fmtDate = (iso: string, locale: Locale) =>

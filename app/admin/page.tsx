@@ -2,26 +2,11 @@ import Link from "next/link";
 import { getCatchOfDay, getClosedOverride } from "@/lib/data";
 import { SITE_ID, supabaseConfigured } from "@/lib/supabase";
 import { currentAdmin } from "@/lib/supabase-server";
-import { setBookingStatus, signOut } from "./actions";
-import { CatchEditor, LoginForm, SeasonForm } from "./forms";
+import { signOut } from "./actions";
+import { BookingList, CatchEditor, LoginForm, SeasonForm, type BookingRow } from "./forms";
 
 export const dynamic = "force-dynamic";
 
-type Booking = {
-  id: string;
-  date: string;
-  time: string;
-  party_size: number;
-  seating: string;
-  large_group: boolean;
-  name: string;
-  phone: string;
-  email: string;
-  note: string;
-  locale: string;
-  status: "pending" | "confirmed" | "declined";
-  created_at: string;
-};
 
 const card = "border border-deep/10 bg-white p-6 md:p-8";
 const h2 = "text-xs font-semibold uppercase tracking-[0.2em] text-ink-soft";
@@ -68,7 +53,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   let query = supabase.from("booking_requests").select("*").eq("site_id", SITE_ID).order("created_at", { ascending: false }).limit(200);
   if (show === "open") query = query.eq("status", "pending");
   const [{ data: bookings, error }, catchOfDay, override] = await Promise.all([query, getCatchOfDay(), getClosedOverride()]);
-  const list = (bookings ?? []) as Booking[];
+  const list = (bookings ?? []) as BookingRow[];
 
   return (
     <Shell email={user.email}>
@@ -87,39 +72,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           </nav>
         </div>
         {error && <p className="mt-4 text-coral">{error.message}</p>}
-        {!list.length && <p className="mt-6 text-ink-soft">{show === "open" ? "Nothing waiting. All requests are answered." : "No requests yet."}</p>}
-        <ul className="mt-4 divide-y divide-deep/10">
-          {list.map((b) => (
-            <li key={b.id} className="grid gap-3 py-5 md:grid-cols-[1fr_auto] md:items-center">
-              <div>
-                <p className="text-lg text-deep">
-                  <strong className="font-semibold">{b.name}</strong> · {b.party_size} ppl · {fmt(b.date)} {b.time}
-                  {b.large_group && <span className="ml-2 rounded bg-ochre/20 px-2 py-0.5 text-xs uppercase tracking-wider text-deep">Large group</span>}
-                </p>
-                <p className="mt-1 text-sm text-ink-soft">
-                  {b.seating} · <a href={`tel:${b.phone}`}>{b.phone}</a> · <a href={`mailto:${b.email}`}>{b.email}</a> · {b.locale.toUpperCase()} ·
-                  received {new Date(b.created_at).toLocaleString("en-GB", { timeZone: "Europe/Zagreb", dateStyle: "short", timeStyle: "short" })}
-                </p>
-                {b.note && <p className="mt-2 text-sm italic text-ink">“{b.note}”</p>}
-              </div>
-              {b.status === "pending" ? (
-                <form action={setBookingStatus} className="flex gap-2">
-                  <input type="hidden" name="id" value={b.id} />
-                  <button name="status" value="confirmed" className="bg-deep px-4 py-2 text-sm text-stone hover:bg-sea">
-                    Confirm
-                  </button>
-                  <button name="status" value="declined" className="border border-deep/30 px-4 py-2 text-sm text-deep hover:border-coral hover:text-coral">
-                    Decline
-                  </button>
-                </form>
-              ) : (
-                <span className={`text-sm font-semibold uppercase tracking-wider ${b.status === "confirmed" ? "text-emerald-700" : "text-coral"}`}>
-                  {b.status}
-                </span>
-              )}
-            </li>
-          ))}
-        </ul>
+        <BookingList bookings={list} emptyText={show === "open" ? "Nothing waiting. All requests are answered." : "No requests yet."} />
         <p className="mt-4 text-xs text-ink-soft">Confirm or decline emails the guest in their language.</p>
       </section>
 
@@ -144,9 +97,6 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   );
 }
 
-function fmt(iso: string) {
-  return new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`));
-}
 
 function Shell({ email, children }: { email?: string; children: React.ReactNode }) {
   return (

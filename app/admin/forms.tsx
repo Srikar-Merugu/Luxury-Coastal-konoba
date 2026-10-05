@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import type { CatchItem, L } from "@/lib/content";
 import { photos, type PhotoKey } from "@/lib/photos";
-import { saveCatch, saveSeasonState, signIn, type FormState } from "./actions";
+import { decideBooking, saveCatch, saveSeasonState, signIn, type FormState } from "./actions";
 
 const input = "mt-1 block w-full border border-deep/20 bg-white px-3 py-2 text-ink focus:border-deep focus:outline-none";
 const lbl = "block text-xs uppercase tracking-[0.15em] text-ink-soft";
@@ -172,5 +172,79 @@ export function SeasonForm({ initial }: { initial: { active: boolean; note: L } 
         <Status state={state} />
       </div>
     </form>
+  );
+}
+
+export type BookingRow = {
+  id: string;
+  date: string;
+  time: string;
+  party_size: number;
+  seating: string;
+  large_group: boolean;
+  name: string;
+  phone: string;
+  email: string;
+  note: string;
+  locale: string;
+  status: "pending" | "confirmed" | "declined";
+  created_at: string;
+};
+
+const fmtDay = (iso: string) =>
+  new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`));
+
+/** Table requests with Confirm / Decline. The result stays visible above the list after the row moves out of "Waiting". */
+export function BookingList({ bookings, emptyText }: { bookings: BookingRow[]; emptyText: string }) {
+  const [state, action, pending] = useActionState(decideBooking, undefined);
+  return (
+    <>
+      {state && (
+        <div className="mt-4">
+          <Status state={state} />
+        </div>
+      )}
+      {!bookings.length && <p className="mt-6 text-ink-soft">{emptyText}</p>}
+      <ul className="mt-4 divide-y divide-deep/10">
+        {bookings.map((b) => (
+          <li key={b.id} className="grid gap-3 py-5 md:grid-cols-[1fr_auto] md:items-center">
+            <div>
+              <p className="text-lg text-deep">
+                <strong className="font-semibold">{b.name}</strong> · {b.party_size} ppl · {fmtDay(b.date)} {b.time}
+                {b.large_group && <span className="ml-2 rounded bg-ochre/20 px-2 py-0.5 text-xs uppercase tracking-wider text-deep">Large group</span>}
+              </p>
+              <p className="mt-1 text-sm text-ink-soft">
+                {b.seating} · <a href={`tel:${b.phone}`}>{b.phone}</a> · <a href={`mailto:${b.email}`}>{b.email}</a> · {b.locale.toUpperCase()} · received{" "}
+                {new Date(b.created_at).toLocaleString("en-GB", { timeZone: "Europe/Zagreb", dateStyle: "short", timeStyle: "short" })}
+              </p>
+              {b.note && <p className="mt-2 text-sm italic text-ink">“{b.note}”</p>}
+            </div>
+            {b.status === "pending" ? (
+              <div className="flex gap-2">
+                <form action={action}>
+                  <input type="hidden" name="id" value={b.id} />
+                  <input type="hidden" name="status" value="confirmed" />
+                  <button disabled={pending} className="bg-deep px-4 py-2 text-sm text-stone hover:bg-sea disabled:opacity-50">
+                    Confirm
+                  </button>
+                </form>
+                <form action={action}>
+                  <input type="hidden" name="id" value={b.id} />
+                  <input type="hidden" name="status" value="declined" />
+                  <button
+                    disabled={pending}
+                    className="border border-deep/30 px-4 py-2 text-sm text-deep hover:border-coral hover:text-coral disabled:opacity-50"
+                  >
+                    Decline
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <span className={`text-sm font-semibold uppercase tracking-wider ${b.status === "confirmed" ? "text-emerald-700" : "text-coral"}`}>{b.status}</span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }

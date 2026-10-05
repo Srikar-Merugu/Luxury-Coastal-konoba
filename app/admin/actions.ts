@@ -37,11 +37,12 @@ export async function signOut() {
   redirect("/admin");
 }
 
-export async function setBookingStatus(form: FormData) {
-  const supabase = await requireAdmin();
-  const id = String(form.get("id"));
-  const status = String(form.get("status"));
-  if (status !== "confirmed" && status !== "declined") return;
+export async function decideBooking(_: FormState, form: FormData): Promise<FormState> {
+  const { supabase, user, allowed } = await currentAdmin();
+  if (!user || !allowed) return { error: "You are signed out. Reload the page and sign in again." };
+  const id = String(form.get("id") ?? "");
+  const status = String(form.get("status") ?? "");
+  if (!id || (status !== "confirmed" && status !== "declined")) return { error: "Unknown request." };
 
   const { data, error } = await supabase
     .from("booking_requests")
@@ -51,9 +52,23 @@ export async function setBookingStatus(form: FormData) {
     .eq("status", "pending") // email the guest once, only on the first decision
     .select()
     .maybeSingle();
-  if (error) throw error;
-  if (data) await sendMail(guestMail(data as Booking, status));
+  if (error) {
+    console.error("[admin] booking update failed", id, error);
+    return { error: `Could not save: ${error.message}` };
+  }
+  if (!data) {
+    console.warn("[admin] booking not pending or not found", id);
+    revalidatePath("/admin");
+    return { error: "This request was already answered." };
+  }
+
+  const mail = await sendMail(guestMail(data as Booking, status));
+  console.log("[admin] booking", id, status, mail.ok ? "guest emailed" : `guest email NOT sent: ${mail.error}`);
   revalidatePath("/admin");
+  const word = status === "confirmed" ? "Confirmed" : "Declined";
+  return mail.ok
+    ? { ok: `${word}. Email sent to ${data.email}.` }
+    : { error: `${word}, but the email to ${data.email} was not sent. ${mail.error}` };
 }
 
 const L3 = ["hr", "en", "de"] as const;
