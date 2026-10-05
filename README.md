@@ -81,9 +81,21 @@ What happens then:
 | `public/photos`, `public/cut`, `public/video` | AI-generated imagery and loops |
 | `public/fonts/README.md` | How to drop in the licensed display fonts |
 
+## Live setup
+
+- Supabase project `konoba-plavi-kamen` (eu-central-1, ref `ljszqfwfqkexehkfkywi`): schema and
+  seed applied; keys set in Vercel for production, preview and development.
+- Vercel project `luxury-coastal-konoba`, domain `konoba.demo.kyrostudio.eu` added and waiting
+  for DNS on kyrostudio.eu:
+  - `TXT _vercel.kyrostudio.eu` → `vc-domain-verify=konoba.demo.kyrostudio.eu,ceb60aaad35753b2f9ec`
+  - `CNAME konoba.demo` → `cname.vercel-dns.com`
+  Then set `NEXT_PUBLIC_SITE_URL=https://konoba.demo.kyrostudio.eu` in Vercel.
+
 ## Not done yet
 
-- Supabase project, Resend domain and keys, and the `konoba.demo.kyrostudio.eu` domain
-  (Kishlay: Supabase, auth and deployment).
+- Owner login for /admin: create it in Supabase → Authentication → Users, then
+  `insert into admins values ('konoba', '<user uuid>');`
+- Resend: verify a sending domain, then set `RESEND_API_KEY`, `EMAIL_FROM`, `BOOKING_INBOX` in Vercel.
+- GA4 measurement ID (`NEXT_PUBLIC_GA_ID`); turn on Web Analytics in the Vercel project.
 - Licensed display fonts (see `public/fonts/README.md`); free look-alikes are used until then.
-- HR/DE copy needs a native-speaker review; Lighthouse pass after deploy; real-phone tests.
+- Native-speaker sign-off on HR/DE; real-phone tests.

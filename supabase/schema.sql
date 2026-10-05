@@ -153,3 +153,7 @@ create policy "admin update" on booking_requests for update to authenticated
 
 drop policy if exists "own rows" on admins;
 create policy "own rows" on admins for select to authenticated using (user_id = auth.uid());
+
+-- Only signed-in users need the admin check (used by the policies above and /admin).
+revoke execute on function is_site_admin(text) from public, anon;
+grant execute on function is_site_admin(text) to authenticated;
