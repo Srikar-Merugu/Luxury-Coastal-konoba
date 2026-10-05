@@ -150,17 +150,38 @@ export function Motion() {
 
       const mm = gsap.matchMedia();
       mm.add("(min-width: 1024px)", () => {
+        // Horizontal galleries hold with CSS sticky (no GSAP pin): pinning
+        // re-parents the section, and React then fails to remove it when
+        // you navigate away. The section is made exactly tall enough for
+        // the track to travel its full width while the stage sticks.
+        const cleanups: (() => void)[] = [];
         gsap.utils.toArray<HTMLElement>("[data-hscroll]").forEach((section) => {
           const track = section.querySelector<HTMLElement>("[data-hscroll-track]");
           if (!track) return;
           const distance = () => Math.max(0, track.scrollWidth - track.clientWidth);
+          const size = () => {
+            section.style.height = `${window.innerHeight + distance()}px`;
+          };
+          size();
           const tl = gsap.timeline({
-            scrollTrigger: { trigger: section, start: "top top", end: () => `+=${distance()}`, scrub: 0.6, pin: true, invalidateOnRefresh: true, refreshPriority: 1 },
+            scrollTrigger: {
+              trigger: section,
+              start: "top top",
+              end: "bottom bottom",
+              scrub: 0.6,
+              invalidateOnRefresh: true,
+              refreshPriority: 1,
+              onRefreshInit: size,
+            },
           });
           tl.to(track, { x: () => -distance(), ease: "none" }, 0);
           const bar = section.querySelector<HTMLElement>("[data-hscroll-progress]");
           if (bar) tl.fromTo(bar, { scaleX: 0.08 }, { scaleX: 1, ease: "none" }, 0);
+          cleanups.push(() => {
+            section.style.height = "";
+          });
         });
+        return () => cleanups.forEach((fn) => fn());
       });
 
       gsap.utils.toArray<HTMLElement>("[data-chapters]").forEach((root) => {

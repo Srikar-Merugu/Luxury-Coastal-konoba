@@ -92,8 +92,8 @@ export function CoastBand({ locale }: { locale: Locale }) {
 export function DaysInCove({ locale }: { locale: Locale }) {
   const t = coast[locale].days;
   return (
-    <section data-hscroll className="relative overflow-hidden bg-white" aria-labelledby="days-title">
-      <div className="flex flex-col py-20 lg:h-screen lg:flex-row lg:items-center lg:py-0">
+    <section data-hscroll className="relative bg-white" aria-labelledby="days-title">
+      <div className="flex flex-col py-20 lg:sticky lg:top-0 lg:h-screen lg:flex-row lg:items-center lg:overflow-hidden lg:py-0">
         <div className="container-k relative z-10 shrink-0 bg-white lg:flex lg:h-full lg:w-[34vw] lg:max-w-none lg:flex-col lg:justify-center lg:pr-12 lg:shadow-[30px_0_40px_-10px_#fff] xl:pl-14">
           <p className="label text-sea">{t.eyebrow}</p>
           <div id="days-title" className="mt-6 text-[clamp(2.8rem,5vw,4.8rem)] text-sea">
@@ -142,8 +142,8 @@ export function Gather({ locale, menu }: { locale: Locale; menu: MenuCategory[] 
   const t = coast[locale].gather;
   const dishes = menu.flatMap((c) => c.items).filter((i) => i.signature && i.photo);
   return (
-    <section data-hscroll className="relative overflow-hidden bg-stone" aria-labelledby="gather-title">
-      <div className="flex flex-col justify-center py-20 lg:h-screen lg:py-0">
+    <section data-hscroll className="relative bg-stone" aria-labelledby="gather-title">
+      <div className="flex flex-col justify-center py-20 lg:sticky lg:top-0 lg:h-screen lg:overflow-hidden lg:py-0">
         <div className="container-k mb-10 flex flex-col gap-4 lg:mb-12 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="label text-sea">{t.eyebrow}</p>
