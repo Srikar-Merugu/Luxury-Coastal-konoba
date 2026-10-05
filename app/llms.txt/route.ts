@@ -30,7 +30,7 @@ Note: this is a fictional demo venue built by Kyro Studio (https://kyrostudio.eu
 - Phone: ${venue.phone}
 - Email: ${venue.email}
 - Coordinates: ${venue.geo.lat}, ${venue.geo.lng}
-- Book a table: ${venue.url}${href("en", "book")}
+- [Book a table](${venue.url}${href("en", "book")})
 
 ## Opening hours
 ${hours}
@@ -43,10 +43,12 @@ ${dishes}
 ${faqs.map((f) => `**${f.q.en}**\n${f.a.en}`).join("\n\n")}
 
 ## Pages
-- Home: ${venue.url}/en (HR: ${venue.url}/hr, DE: ${venue.url}/de)
-- Menu: ${venue.url}${href("en", "menu")}
-- Getting here: ${venue.url}${href("en", "visit")}
-- FAQ: ${venue.url}${href("en", "faq")}
+- [Home](${venue.url}/en): also in [Croatian](${venue.url}/hr) and [German](${venue.url}/de)
+- [Menu](${venue.url}${href("en", "menu")})
+- [Book a table](${venue.url}${href("en", "book")})
+- [Getting here](${venue.url}${href("en", "visit")})
+- [Our story](${venue.url}${href("en", "about")})
+- [FAQ](${venue.url}${href("en", "faq")})
 `;
   return new Response(body, { headers: { "Content-Type": "text/plain; charset=utf-8" } });
 }

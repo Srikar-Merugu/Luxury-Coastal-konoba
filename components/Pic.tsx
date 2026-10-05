@@ -33,7 +33,8 @@ export function Pic({
       sizes={sizes}
       priority={priority}
       fetchPriority={priority ? "high" : "low"}
-      placeholder="blur"
+      // heroes load first anyway; their blur placeholder is only swapped out after hydration and delays the paint
+      placeholder={priority ? "empty" : "blur"}
       quality={78}
       className="object-cover"
     />

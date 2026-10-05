@@ -146,7 +146,8 @@ export function Motion() {
           splitWords(el);
           gsap.fromTo(
             el.querySelectorAll(".split-word > span"),
-            { opacity: 0.14 },
+            // words start dimmed but still readable (3:1 for this large text)
+            { opacity: 0.55 },
             { opacity: 1, stagger: 0.1, ease: "none", scrollTrigger: { trigger: el, start: "top 80%", end: "bottom 45%", scrub: true } },
           );
         });
