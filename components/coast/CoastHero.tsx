@@ -63,7 +63,7 @@ export function CoastHero({ locale }: { locale: Locale }) {
             src={photos.opensea}
             alt={alts.opensea[locale]}
             fill
-            priority
+            loading="eager"
             sizes="100vw"
             quality={80}
             placeholder="blur"
@@ -116,7 +116,9 @@ export function CoastHero({ locale }: { locale: Locale }) {
               src={cutouts.plateTop}
               alt=""
               sizes="(max-width: 640px) 104vw, 48vw"
+              // the largest element on first paint: fetched first, ahead of the sky and the fork
               priority
+              fetchPriority="high"
               className="h-auto w-full drop-shadow-[0_40px_50px_rgba(23,48,79,.25)]"
             />
           </div>
@@ -131,7 +133,7 @@ export function CoastHero({ locale }: { locale: Locale }) {
             src={cutouts.fork}
             alt=""
             sizes="(max-width: 640px) 62vw, 34vw"
-            priority
+            loading="eager"
             className="h-auto w-full lg:drop-shadow-[0_30px_36px_rgba(23,48,79,.3)]"
           />
         </div>
