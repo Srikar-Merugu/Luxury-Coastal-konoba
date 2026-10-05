@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { CoastBar } from "@/components/CoastBar";
 import { CoastHero } from "@/components/coast/CoastHero";
 import { DayNight } from "@/components/coast/DayNight";
 import { Journey } from "@/components/coast/Journey";
@@ -25,7 +26,7 @@ export default async function Home({ params }: Props) {
   return (
     <>
       <JsonLd data={[restaurantJsonLd(locale, seasons), breadcrumbJsonLd(locale, "home")]} />
-      <CoastHero locale={locale} />
+      <CoastHero locale={locale} bar={<CoastBar locale={locale} />} />
       <Journey locale={locale} />
       <CoastBand locale={locale} />
       <DaysInCove locale={locale} />

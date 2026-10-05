@@ -16,7 +16,7 @@ import { Wave } from "./Wave";
  * below with the morning's scampi on a fork. On scroll the fork lifts, the
  * title drifts up and the sea sinks away.
  */
-export function CoastHero({ locale }: { locale: Locale }) {
+export function CoastHero({ locale, bar }: { locale: Locale; bar?: React.ReactNode }) {
   const t = coast[locale];
   const root = useRef<HTMLElement>(null);
 
@@ -42,6 +42,7 @@ export function CoastHero({ locale }: { locale: Locale }) {
         gsap
           .timeline({ scrollTrigger: { trigger: root.current, start: "top top", end: "bottom bottom", scrub: 0.6 } })
           .to("[data-h-arc]", { y: "-22vh", opacity: 0, ease: "none", duration: 0.45 }, 0)
+        .to("[data-h-bar]", { y: "-6vh", opacity: 0, ease: "none", duration: 0.3 }, 0)
           .to("[data-h-fork]", { y: "78vh", ease: "power1.in", duration: 0.75 }, 0)
           .to("[data-h-plate]", { y: "62vh", ease: "power1.in", duration: 0.8 }, 0.08)
           .to("[data-h-bg]", { scale: 1.12, ease: "none", duration: 1 }, 0)
@@ -79,6 +80,11 @@ export function CoastHero({ locale }: { locale: Locale }) {
         <div className="absolute inset-0 bg-gradient-to-b from-deep/35 via-deep/10 to-transparent" />
 
         <h1 className="sr-only">{t.heroArc}</h1>
+        {bar && (
+          <div data-h-bar className="absolute inset-x-4 top-[calc(4.5rem+10px)] z-20 flex justify-center md:top-[calc(6rem+6px)]">
+            {bar}
+          </div>
+        )}
         <svg
           data-h-arc
           viewBox="0 0 1000 300"

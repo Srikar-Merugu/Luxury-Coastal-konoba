@@ -28,7 +28,7 @@ function fmtDate(mmdd: string, locale: Locale) {
   return new Intl.DateTimeFormat(locale === "hr" ? "hr-HR" : locale, { day: "numeric", month: "long" }).format(new Date(2026, m - 1, d));
 }
 
-export function Hours({ locale }: { locale: Locale }) {
+export function Hours({ locale, extra }: { locale: Locale; extra?: React.ReactNode }) {
   const t = getDict(locale).hours;
   const { seasons } = useSiteData();
   const [current, setCurrent] = useState<string | null>(null);
@@ -49,6 +49,7 @@ export function Hours({ locale }: { locale: Locale }) {
               {t.title}
             </h2>
             <SeasonStatus locale={locale} tone="light" className="mt-8" />
+            {extra && <div className="mt-3">{extra}</div>}
           </div>
           <div className="md:col-span-6 md:col-start-7">
             {seasons.map((s) => {

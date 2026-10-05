@@ -68,6 +68,20 @@ const en = {
       },
     ],
   },
+  coastBar: {
+    label: "Right now in Lučica",
+    sea: "Sea",
+    sky: { clear: "Clear", cloudy: "Cloudy", fog: "Misty", rain: "Rain", storm: "Thunderstorm" },
+    wind: {
+      calm: "Calm sea · terrace open",
+      breeze: "Light breeze · terrace open",
+      windy: "Windy · sheltered tables on the terrace",
+      jugo: "Jugo, the warm south wind · terrace open",
+      bura: "Bura is blowing · sheltered tables only",
+      strongBura: (g: number) => `Strong bura, gusts to ${g} km/h · we serve indoors today`,
+    },
+    wet: "cosy tables inside by the hearth",
+  },
   catch: {
     eyebrow: "Catch of the day",
     updated: (time: string, by: string) => `Chalked up at ${time} by ${by}`,
@@ -262,6 +276,20 @@ const hr: Dict = {
       },
     ],
   },
+  coastBar: {
+    label: "Upravo sada u Lučici",
+    sea: "More",
+    sky: { clear: "Vedro", cloudy: "Oblačno", fog: "Maglovito", rain: "Kiša", storm: "Grmljavina" },
+    wind: {
+      calm: "More mirno · terasa otvorena",
+      breeze: "Lagani povjetarac · terasa otvorena",
+      windy: "Vjetrovito · zaklonjeni stolovi na terasi",
+      jugo: "Puše jugo · terasa otvorena",
+      bura: "Puše bura · samo zaklonjeni stolovi",
+      strongBura: (g: number) => `Jaka bura, udari do ${g} km/h · danas poslužujemo unutra`,
+    },
+    wet: "ugodni stolovi unutra uz ognjište",
+  },
   catch: {
     eyebrow: "Ulov dana",
     updated: (time, by) => `Zapisao ${by} u ${time}`,
@@ -453,6 +481,20 @@ const de: Dict = {
         body: "Die Sonne sinkt hinter Lošinj, die Glut ist bereit. Reservieren Sie die Terrasse zum Sonnenuntergang rechtzeitig, sie ist als Erstes ausgebucht.",
       },
     ],
+  },
+  coastBar: {
+    label: "Gerade jetzt in Lučica",
+    sea: "Meer",
+    sky: { clear: "Klar", cloudy: "Bewölkt", fog: "Dunstig", rain: "Regen", storm: "Gewitter" },
+    wind: {
+      calm: "Ruhige See · Terrasse geöffnet",
+      breeze: "Leichte Brise · Terrasse geöffnet",
+      windy: "Windig · geschützte Tische auf der Terrasse",
+      jugo: "Jugo, warmer Südwind · Terrasse geöffnet",
+      bura: "Die Bora weht · nur geschützte Tische",
+      strongBura: (g: number) => `Starke Bora, Böen bis ${g} km/h · heute servieren wir drinnen`,
+    },
+    wet: "gemütliche Tische drinnen am Kamin",
   },
   catch: {
     eyebrow: "Fang des Tages",
