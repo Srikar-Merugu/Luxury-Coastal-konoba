@@ -84,12 +84,23 @@ What happens then:
 ## Live setup
 
 - Supabase project `konoba-plavi-kamen` (eu-central-1, ref `ljszqfwfqkexehkfkywi`): schema and
-  seed applied; keys set in Vercel for production, preview and development.
-- Vercel project `luxury-coastal-konoba`, domain `konoba.demo.kyrostudio.eu` added and waiting
+  seed applied, RLS checked (public reads content, can only insert bookings). Keys are set in
+  Vercel for production, preview and development.
+- Vercel project `luxury-coastal-konoba`; domain `konoba.demo.kyrostudio.eu` is added and waits
   for DNS on kyrostudio.eu:
   - `TXT _vercel.kyrostudio.eu` → `vc-domain-verify=konoba.demo.kyrostudio.eu,ceb60aaad35753b2f9ec`
   - `CNAME konoba.demo` → `cname.vercel-dns.com`
   Then set `NEXT_PUBLIC_SITE_URL=https://konoba.demo.kyrostudio.eu` in Vercel.
+
+## Checks done (5 Oct 2026)
+
+- PageSpeed Insights, mobile, home: Performance 99, Accessibility 100, Best Practices 100,
+  SEO 100 (`docs/proof/pagespeed-mobile-home.jpg`). Inner pages measure 90–98 with 100
+  accessibility in Lighthouse mobile runs.
+- Google Rich Results Test: Local business, Organization and Breadcrumbs valid on home;
+  FAQ page valid (Google now shows FAQ rich results only for government and health sites).
+- Test bookings from the local and the live site landed in `booking_requests` as pending.
+- Phone-size run (Android emulation, 375 px): navigation, menu, booking slots, no overflow.
 
 ## Not done yet
 
@@ -97,5 +108,6 @@ What happens then:
   `insert into admins values ('konoba', '<user uuid>');`
 - Resend: verify a sending domain, then set `RESEND_API_KEY`, `EMAIL_FROM`, `BOOKING_INBOX` in Vercel.
 - GA4 measurement ID (`NEXT_PUBLIC_GA_ID`); turn on Web Analytics in the Vercel project.
+- DNS records above for the custom domain.
 - Licensed display fonts (see `public/fonts/README.md`); free look-alikes are used until then.
-- Native-speaker sign-off on HR/DE; real-phone tests.
+- Native-speaker sign-off on HR/DE (proofread once already); tests on a real iPhone and Android phone.
