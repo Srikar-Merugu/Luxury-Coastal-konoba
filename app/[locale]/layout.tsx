@@ -8,6 +8,7 @@ import { Header } from "@/components/Header";
 import { Analytics } from "@vercel/analytics/next";
 import Script from "next/script";
 import { Concierge } from "@/components/Concierge";
+import { conciergeEnabled } from "@/lib/concierge";
 import { Motion } from "@/components/Motion";
 import { SiteDataProvider } from "@/components/SiteData";
 import { getClosedOverride, getSeasons } from "@/lib/data";
@@ -75,7 +76,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
           <main id="main">{children}</main>
           <Footer locale={locale} />
         </SiteDataProvider>
-        {process.env.ANTHROPIC_API_KEY && <Concierge locale={locale} />}
+        {conciergeEnabled() && <Concierge locale={locale} />}
         <Motion />
         <Analytics />
         {GA_ID && (

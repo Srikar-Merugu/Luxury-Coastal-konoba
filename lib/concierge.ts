@@ -6,6 +6,9 @@ import { href, locales, type Locale } from "./i18n";
 import { getStatus, seasonFor, zagrebNow } from "./season";
 import { getDict } from "./dict";
 
+/** True when an AI provider key is set (the "Ask us" button shows only then). */
+export const conciergeEnabled = () => Boolean(process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY || process.env.ANTHROPIC_API_KEY);
+
 const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 /**
