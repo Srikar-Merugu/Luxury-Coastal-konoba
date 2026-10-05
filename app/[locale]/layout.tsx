@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { Metadata, Viewport } from "next";
-import { Cormorant, Inter, Poiret_One, Sacramento } from "next/font/google";
+import { Cormorant, Poiret_One, Sacramento } from "next/font/google";
 import { notFound } from "next/navigation";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
@@ -26,7 +26,6 @@ const cormorant = Cormorant({
 });
 // Thin Art Deco caps, the closest open-licence match to the reference title face.
 const poiret = Poiret_One({ subsets: ["latin", "latin-ext"], weight: "400", variable: "--font-poiret", display: "swap" });
-const inter = Inter({ subsets: ["latin", "latin-ext"], variable: "--font-inter", display: "swap", preload: false });
 const sacramento = Sacramento({ subsets: ["latin", "latin-ext"], weight: "400", variable: "--font-sacramento", display: "swap", preload: false });
 
 /**
@@ -64,7 +63,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
   const t = getDict(locale);
   const [seasons, override] = await Promise.all([getSeasons(), getClosedOverride()]);
   return (
-    <html lang={htmlLang[locale]} className={`${cormorant.variable} ${poiret.variable} ${inter.variable} ${sacramento.variable}`}>
+    <html lang={htmlLang[locale]} className={`${cormorant.variable} ${poiret.variable} ${sacramento.variable}`}>
       <body className="antialiased">
         {brandFontCss && <style dangerouslySetInnerHTML={{ __html: brandFontCss }} />}
         <a href="#main" className="sr-only z-[70] bg-ochre px-4 py-2 font-medium text-deep focus:not-sr-only focus:fixed focus:left-4 focus:top-4">
