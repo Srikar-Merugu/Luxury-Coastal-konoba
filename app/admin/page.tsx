@@ -3,6 +3,7 @@ import { getCapacity, getCatchOfDay, getClosedOverride } from "@/lib/data";
 import { SITE_ID, supabaseConfigured } from "@/lib/supabase";
 import { currentAdmin } from "@/lib/supabase-server";
 import { signOut } from "./actions";
+import { Dashboard, zagrebDay } from "./Dashboard";
 import { BookingList, CatchEditor, LoginForm, SeasonForm, type BookingRow } from "./forms";
 
 export const dynamic = "force-dynamic";
@@ -52,11 +53,26 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const show = (await searchParams).show === "all" ? "all" : "open";
   let query = supabase.from("booking_requests").select("*").eq("site_id", SITE_ID).order("created_at", { ascending: false }).limit(200);
   if (show === "open") query = query.eq("status", "pending");
-  const [{ data: bookings, error }, catchOfDay, override, capacity] = await Promise.all([query, getCatchOfDay(), getClosedOverride(), getCapacity()]);
+  const range = supabase
+    .from("booking_requests")
+    .select("*")
+    .eq("site_id", SITE_ID)
+    .gte("date", zagrebDay(-30))
+    .lte("date", zagrebDay(7))
+    .limit(2000);
+  const [{ data: bookings, error }, { data: overview }, catchOfDay, override, capacity] = await Promise.all([
+    query,
+    range,
+    getCatchOfDay(),
+    getClosedOverride(),
+    getCapacity(),
+  ]);
   const list = (bookings ?? []) as BookingRow[];
 
   return (
     <Shell email={user.email}>
+      <Dashboard bookings={(overview ?? []) as BookingRow[]} />
+
       <section className={card} aria-labelledby="bookings">
         <div className="flex flex-wrap items-baseline justify-between gap-4">
           <h2 id="bookings" className={h2}>
