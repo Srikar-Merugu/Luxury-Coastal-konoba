@@ -1,11 +1,14 @@
 import "server-only";
+import nodemailer, { type Transporter } from "nodemailer";
 import { venue } from "./content";
 import type { Locale } from "./i18n";
 
 /**
- * Booking emails through Resend. Needs RESEND_API_KEY, EMAIL_FROM (an address
- * on a domain verified in Resend) and BOOKING_INBOX (the Kyro test inbox that
- * plays the owner). Without a key, emails are skipped and logged.
+ * Booking emails. Sent through Gmail when SMTP_USER and SMTP_PASS (a Google
+ * app password) are set, which reaches any address without owning a domain;
+ * otherwise through Resend (RESEND_API_KEY, EMAIL_FROM on a verified domain).
+ * BOOKING_INBOX receives every new request. Without either sender, emails
+ * are skipped and logged.
  */
 
 export type Booking = {
@@ -23,17 +26,42 @@ export type Booking = {
 };
 
 type Mail = { to: string; subject: string; text: string; replyTo?: string };
+type Sent = { ok: boolean; error?: string };
 
 /** Sends one email; never throws. `error` says why it was not sent. */
-export async function sendMail(mail: Mail): Promise<{ ok: boolean; error?: string }> {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) {
-    console.warn(`[email] RESEND_API_KEY not set, skipped: "${mail.subject}" → ${mail.to}`);
-    return { ok: false, error: "email is not set up (RESEND_API_KEY missing)" };
+export async function sendMail(mail: Mail): Promise<Sent> {
+  if (process.env.SMTP_USER && process.env.SMTP_PASS) return viaGmail(mail);
+  if (process.env.RESEND_API_KEY) return viaResend(mail);
+  console.warn(`[email] no sender configured, skipped: "${mail.subject}" → ${mail.to}`);
+  return { ok: false, error: "email is not set up (add SMTP_USER and SMTP_PASS in Vercel)" };
+}
+
+let transport: Transporter | null = null;
+
+async function viaGmail(mail: Mail): Promise<Sent> {
+  const user = process.env.SMTP_USER!;
+  transport ??= nodemailer.createTransport({
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
+    port: Number(process.env.SMTP_PORT) || 465,
+    secure: (Number(process.env.SMTP_PORT) || 465) === 465,
+    // app passwords are shown with spaces; Gmail wants them without
+    auth: { user, pass: process.env.SMTP_PASS!.replace(/\s+/g, "") },
+  });
+  try {
+    // Gmail only sends as the signed-in account, so the address stays `user`.
+    await transport.sendMail({ from: { name: venue.name, address: user }, to: mail.to, subject: mail.subject, text: mail.text, replyTo: mail.replyTo });
+    return { ok: true };
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
+    console.error(`[email] Gmail: ${reason}`);
+    return { ok: false, error: `Gmail: ${reason}` };
   }
+}
+
+async function viaResend(mail: Mail): Promise<Sent> {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       from: process.env.EMAIL_FROM || `${venue.name} <onboarding@resend.dev>`,
       to: [mail.to],
@@ -145,18 +173,21 @@ function details(b: Booking, locale: Locale) {
 
 const footer = `\n\n${venue.name}\n${venue.street}, ${venue.postalCode} ${venue.locality}, ${venue.island}\n${venue.phone}\n\n— Demo concept by Kyro Studio (kyrostudio.eu). Fictional venue.`;
 
+/** Where new requests go: BOOKING_INBOX, else the Gmail account that sends. */
+const ownerInbox = () => process.env.BOOKING_INBOX || process.env.SMTP_USER || "";
+
 export function guestMail(b: Booking, kind: "received" | "confirmed" | "declined"): Mail {
   const c = copy[b.locale] ?? copy.en;
   return {
     to: b.email,
     subject: `${c[kind].subject} · ${venue.name}`,
     text: `${c[kind].intro(b.name)}\n\n${c.details}:\n${details(b, b.locale)}${footer}`,
-    replyTo: process.env.BOOKING_INBOX || venue.email,
+    replyTo: ownerInbox() || venue.email,
   };
 }
 
 export function ownerMail(b: Booking): Mail | null {
-  const to = process.env.BOOKING_INBOX;
+  const to = ownerInbox();
   if (!to) return null;
   const site = process.env.NEXT_PUBLIC_SITE_URL || venue.url;
   return {

@@ -106,7 +106,8 @@ What happens then:
 
 - Owner login for /admin: create it in Supabase → Authentication → Users, then
   `insert into admins values ('konoba', '<user uuid>');`
-- Resend: verify a sending domain, then set `RESEND_API_KEY`, `EMAIL_FROM`, `BOOKING_INBOX` in Vercel.
+- Emails: set `SMTP_USER` (Gmail address) and `SMTP_PASS` (Google app password) in Vercel,
+  plus `BOOKING_INBOX`. Resend stays as a fallback for when a sending domain is verified.
 - GA4 measurement ID (`NEXT_PUBLIC_GA_ID`); turn on Web Analytics in the Vercel project.
 - DNS records above for the custom domain.
 - Licensed display fonts (see `public/fonts/README.md`); free look-alikes are used until then.
