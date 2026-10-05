@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useEffect, useRef } from "react";
 import { coast } from "@/lib/dict-coast";
 import type { Locale } from "@/lib/i18n";
+import { whenIdle } from "@/lib/idle";
 import { alts, photos, type PhotoKey } from "@/lib/photos";
 
 /**
@@ -17,41 +18,45 @@ export function DayNight({ locale }: { locale: Locale }) {
   const t = coast[locale].dayNight;
   const root = useRef<HTMLElement>(null);
 
-  useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const ctx = gsap.context(() => {
-      // Day holds first, then night wipes in from the left while zooming out
-      // to rest; the day pushes in a touch as it is covered.
-      const tl = gsap.timeline({
-        defaults: { ease: "none" },
-        scrollTrigger: {
-          trigger: root.current,
-          start: "top top",
-          end: "bottom bottom",
-          scrub: reduce ? true : 0.6,
-          // measure after the pinned sections above it have added their length
-          refreshPriority: -1,
-          invalidateOnRefresh: true,
-        },
-      });
-      tl.set({}, {}, 1);
-      tl.fromTo("[data-dn-night]", { clipPath: "inset(0% 100% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 0.5, ease: "power1.inOut" }, 0.28);
-      tl.fromTo("[data-dn-bar]", { scaleX: 0.5 }, { scaleX: 1, duration: 0.5, ease: "power1.inOut" }, 0.28);
-      if (!reduce) {
-        tl.fromTo("[data-dn-night-img]", { scale: 1.38, xPercent: -6 }, { scale: 1.04, xPercent: 0, duration: 0.6, ease: "power2.out" }, 0.28);
-        tl.fromTo("[data-dn-day-img]", { scale: 1.04 }, { scale: 1.16, duration: 0.55 }, 0.25);
-        tl.fromTo("[data-dn-caption]", { y: 16 }, { y: -16, duration: 1 }, 0);
-      }
-    }, root);
+  useEffect(
+    () =>
+      whenIdle(() => {
+        gsap.registerPlugin(ScrollTrigger);
+        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const ctx = gsap.context(() => {
+          // Day holds first, then night wipes in from the left while zooming out
+          // to rest; the day pushes in a touch as it is covered.
+          const tl = gsap.timeline({
+            defaults: { ease: "none" },
+            scrollTrigger: {
+              trigger: root.current,
+              start: "top top",
+              end: "bottom bottom",
+              scrub: reduce ? true : 0.6,
+              // measure after the pinned sections above it have added their length
+              refreshPriority: -1,
+              invalidateOnRefresh: true,
+            },
+          });
+          tl.set({}, {}, 1);
+          tl.fromTo("[data-dn-night]", { clipPath: "inset(0% 100% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 0.5, ease: "power1.inOut" }, 0.28);
+          tl.fromTo("[data-dn-bar]", { scaleX: 0.5 }, { scaleX: 1, duration: 0.5, ease: "power1.inOut" }, 0.28);
+          if (!reduce) {
+            tl.fromTo("[data-dn-night-img]", { scale: 1.38, xPercent: -6 }, { scale: 1.04, xPercent: 0, duration: 0.6, ease: "power2.out" }, 0.28);
+            tl.fromTo("[data-dn-day-img]", { scale: 1.04 }, { scale: 1.16, duration: 0.55 }, 0.25);
+            tl.fromTo("[data-dn-caption]", { y: 16 }, { y: -16, duration: 1 }, 0);
+          }
+        }, root);
 
-    // late layout changes (fonts, images) — re-measure once things settle
-    const settle = window.setTimeout(() => ScrollTrigger.refresh(), 1200);
-    return () => {
-      window.clearTimeout(settle);
-      ctx.revert();
-    };
-  }, []);
+        // late layout changes (fonts, images) — re-measure once things settle
+        const settle = window.setTimeout(() => ScrollTrigger.refresh(), 1200);
+        return () => {
+          window.clearTimeout(settle);
+          ctx.revert();
+        };
+      }),
+    [],
+  );
 
   return (
     <section ref={root} className="relative h-[280svh] bg-night" aria-label={`${t.day.caps} / ${t.night.caps}`}>

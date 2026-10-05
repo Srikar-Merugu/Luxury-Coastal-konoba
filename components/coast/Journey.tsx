@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { cutouts } from "@/lib/cutouts";
 import { coast } from "@/lib/dict-coast";
 import type { Locale } from "@/lib/i18n";
+import { whenIdle } from "@/lib/idle";
 import { photos } from "@/lib/photos";
 import { doodles } from "../doodles";
 
@@ -29,43 +30,52 @@ export function Journey({ locale }: { locale: Locale }) {
   const [active, setActive] = useState(-1);
   const [fill, setFill] = useState(0);
 
-  useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
-        defaults: { ease: "none" },
-        scrollTrigger: {
-          trigger: root.current,
-          start: "top top",
-          end: "bottom bottom",
-          scrub: reduce ? true : 0.5,
-          onUpdate: (self) => {
-            const at = self.progress * total;
-            setActive(at < INTRO ? -1 : Math.min(n - 1, Math.floor((at - INTRO) / CHAPTER)));
-            setFill(Math.max(0, Math.min(1, (at - INTRO) / (n * CHAPTER))));
-          },
-        },
-      });
-      // keep the timeline exactly `total` long so positions line up with the script
-      tl.set({}, {}, total);
+  useEffect(
+    () =>
+      whenIdle(() => {
+        gsap.registerPlugin(ScrollTrigger);
+        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const ctx = gsap.context(() => {
+          const tl = gsap.timeline({
+            defaults: { ease: "none" },
+            scrollTrigger: {
+              trigger: root.current,
+              start: "top top",
+              end: "bottom bottom",
+              scrub: reduce ? true : 0.5,
+              onUpdate: (self) => {
+                const at = self.progress * total;
+                setActive(at < INTRO ? -1 : Math.min(n - 1, Math.floor((at - INTRO) / CHAPTER)));
+                setFill(Math.max(0, Math.min(1, (at - INTRO) / (n * CHAPTER))));
+              },
+            },
+          });
+          // keep the timeline exactly `total` long so positions line up with the script
+          tl.set({}, {}, total);
 
-      if (reduce) {
-        gsap.set("[data-j-plate]", { xPercent: -50, yPercent: -50, y: 0 });
-        return;
-      }
+          if (reduce) {
+            gsap.set("[data-j-plate]", { xPercent: -50, yPercent: -50, y: 0 });
+            return;
+          }
 
-      tl.fromTo("[data-j-plate]", { xPercent: -50, yPercent: -50, y: "78vh" }, { xPercent: -50, yPercent: -50, y: 0, duration: INTRO - 0.15, ease: "power2.out" }, 0.05);
-      tl.fromTo("[data-j-spin]", { rotate: -110 }, { rotate: 220, duration: total }, 0);
+          tl.fromTo(
+            "[data-j-plate]",
+            { xPercent: -50, yPercent: -50, y: "78vh" },
+            { xPercent: -50, yPercent: -50, y: 0, duration: INTRO - 0.15, ease: "power2.out" },
+            0.05,
+          );
+          tl.fromTo("[data-j-spin]", { rotate: -110 }, { rotate: 220, duration: total }, 0);
 
-      gsap.utils.toArray<HTMLElement>("[data-j-float]").forEach((el) => {
-        const start = Number(el.dataset.start);
-        const span = Number(el.dataset.span);
-        tl.fromTo(el, { y: "105vh", rotate: Number(el.dataset.r0) }, { y: "-75vh", rotate: Number(el.dataset.r1), duration: span }, start);
-      });
-    }, root);
-    return () => ctx.revert();
-  }, [n, total]);
+          gsap.utils.toArray<HTMLElement>("[data-j-float]").forEach((el) => {
+            const start = Number(el.dataset.start);
+            const span = Number(el.dataset.span);
+            tl.fromTo(el, { y: "105vh", rotate: Number(el.dataset.r0) }, { y: "-75vh", rotate: Number(el.dataset.r1), duration: span }, start);
+          });
+        }, root);
+        return () => ctx.revert();
+      }),
+    [n, total],
+  );
 
   const chapterStart = (i: number) => INTRO + i * CHAPTER;
 
@@ -153,7 +163,12 @@ export function Journey({ locale }: { locale: Locale }) {
           style={{ transform: "translate(-50%, -50%) translateY(78vh)" }}
         >
           <div data-j-spin className="will-change-transform" style={{ transform: "rotate(-110deg)" }}>
-            <Image src={cutouts.plateTop} alt="" sizes="(max-width: 1024px) 96vw, 50vw" className="h-auto w-full drop-shadow-[0_30px_40px_rgba(23,48,79,.14)]" />
+            <Image
+              src={cutouts.plateTop}
+              alt=""
+              sizes="(max-width: 1024px) 96vw, 50vw"
+              className="h-auto w-full drop-shadow-[0_30px_40px_rgba(23,48,79,.14)]"
+            />
           </div>
 
           <div className="absolute inset-[25%] grid place-items-center text-center">
@@ -179,7 +194,10 @@ export function Journey({ locale }: { locale: Locale }) {
                 <span>/ 0{n}</span>
               </div>
               <span className="relative mt-2 block h-px bg-sea/15">
-                <span className="absolute inset-0 origin-left bg-sea transition-transform duration-300" style={{ transform: `scaleX(${0.06 + fill * 0.94})` }} />
+                <span
+                  className="absolute inset-0 origin-left bg-sea transition-transform duration-300"
+                  style={{ transform: `scaleX(${0.06 + fill * 0.94})` }}
+                />
               </span>
             </div>
           </div>

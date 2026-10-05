@@ -89,7 +89,7 @@ export function Header({ locale }: { locale: Locale }) {
           ))}
         </nav>
 
-        <Link href={href(locale, "home")} aria-label={venue.name} className="relative z-10 justify-self-center">
+        <Link href={href(locale, "home")} className="relative z-10 justify-self-center">
           <Logo />
         </Link>
 
@@ -122,6 +122,7 @@ export function Header({ locale }: { locale: Locale }) {
         id="mobile-nav"
         className={`fixed inset-0 -z-10 ${open ? "" : "pointer-events-none"}`}
         aria-hidden={!open}
+        inert={!open}
       >
         <div
           className={`absolute inset-0 bg-deep transition-opacity duration-700 ${open ? "opacity-100" : "opacity-0"}`}

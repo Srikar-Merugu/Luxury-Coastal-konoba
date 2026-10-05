@@ -149,7 +149,7 @@ export function BookingForm({ locale }: { locale: Locale }) {
               className="flex cursor-pointer items-center gap-3 border border-deep/20 px-5 py-5 transition-colors has-[:checked]:border-deep has-[:checked]:bg-deep has-[:checked]:text-stone has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ochre"
             >
               <input type="radio" name="seating_choice" value={value} checked={seating === value} onChange={() => setSeating(value)} className="sr-only" />
-              <span aria-hidden className="label text-[0.6rem] opacity-60">
+              <span aria-hidden className="label text-[0.6rem] opacity-80">
                 {icon}
               </span>
               <span className="font-display text-xl leading-tight">{text}</span>

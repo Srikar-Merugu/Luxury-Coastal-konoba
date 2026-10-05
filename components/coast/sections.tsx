@@ -120,7 +120,7 @@ export function DaysInCove({ locale }: { locale: Locale }) {
                 <Image src={photos[c.photo]} alt={alts[c.photo][locale]} fill sizes="(max-width: 1024px) 80vw, 25vw" className="object-cover transition-transform duration-[1200ms] hover:scale-105" />
               </div>
               <div className="flex flex-1 flex-col px-2 pb-2 pt-6">
-                <p className="label text-[0.6rem] text-ochre">0{i + 1}</p>
+                <p className="label text-[0.6rem] text-ochre-ink">0{i + 1}</p>
                 <div className="mt-2 text-[2.1rem] text-sea">
                   <Title caps={c.caps} script={c.script} as="h3" split={false} />
                 </div>

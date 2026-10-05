@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { getDict } from "@/lib/dict";
 import { coast } from "@/lib/dict-coast";
 import { href, type Locale } from "@/lib/i18n";
+import { whenIdle } from "@/lib/idle";
 import { photos } from "@/lib/photos";
 
 /**
@@ -20,23 +21,27 @@ export function TableCta({ locale }: { locale: Locale }) {
   const t = coast[locale].cta;
   const root = useRef<HTMLElement>(null);
 
-  useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        "[data-cta-copy]",
-        { y: 40, opacity: 0 },
-        { y: 0, opacity: 1, duration: 1.3, ease: "expo.out", stagger: 0.12, scrollTrigger: { trigger: root.current, start: "top 55%" } },
-      );
-      gsap
-        .timeline({ scrollTrigger: { trigger: root.current, start: "top top", end: "bottom bottom", scrub: 0.5, refreshPriority: -1 } })
-        .to("[data-cta-copy-wrap]", { y: "-30vh", ease: "none" }, 0)
-        .fromTo("[data-cta-tint]", { opacity: 0 }, { opacity: 1, ease: "none" }, 0)
-        .fromTo("[data-cta-media]", { scale: 1 }, { scale: 1.1, ease: "none" }, 0);
-    }, root);
-    return () => ctx.revert();
-  }, []);
+  useEffect(
+    () =>
+      whenIdle(() => {
+        gsap.registerPlugin(ScrollTrigger);
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        const ctx = gsap.context(() => {
+          gsap.fromTo(
+            "[data-cta-copy]",
+            { y: 40, opacity: 0 },
+            { y: 0, opacity: 1, duration: 1.3, ease: "expo.out", stagger: 0.12, scrollTrigger: { trigger: root.current, start: "top 55%" } },
+          );
+          gsap
+            .timeline({ scrollTrigger: { trigger: root.current, start: "top top", end: "bottom bottom", scrub: 0.5, refreshPriority: -1 } })
+            .to("[data-cta-copy-wrap]", { y: "-30vh", ease: "none" }, 0)
+            .fromTo("[data-cta-tint]", { opacity: 0 }, { opacity: 1, ease: "none" }, 0)
+            .fromTo("[data-cta-media]", { scale: 1 }, { scale: 1.1, ease: "none" }, 0);
+        }, root);
+        return () => ctx.revert();
+      }),
+    [],
+  );
 
   return (
     <section ref={root} data-cta className="relative h-[200svh]" aria-labelledby="cta-title">

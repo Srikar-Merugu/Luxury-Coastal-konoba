@@ -13,10 +13,11 @@
   --color-teal: #2b5a67;
   --color-night: #0a0e14;
   --color-ochre: #c39f5a;
+  --color-ochre-ink: #8a6a2c; /* ochre dark enough for small text on light backgrounds */
   --color-sage: #8a9e78;
   --color-ink: #1b2a3a;
   --color-ink-soft: #5a6774;
-  --color-coral: #c8573c;
+  --color-coral: #b44a30;
 
   --font-display: var(--font-cormorant), "Times New Roman", serif;
   --font-wide: var(--font-poiret), "Helvetica Neue", Arial, sans-serif;

@@ -71,7 +71,7 @@ export function Directions({ locale, compact = false }: { locale: Locale; compac
         <ol className="lg:col-span-7 lg:col-start-6">
           {blocks.map((b, i) => (
             <li key={b.id} className="grid gap-3 border-t border-deep/15 py-8 sm:grid-cols-[5rem_1fr] md:py-10" data-reveal>
-              <span className="label pt-2 text-ochre">{directionNumbers[i]}</span>
+              <span className="label pt-2 text-ochre-ink">{directionNumbers[i]}</span>
               <div>
                 <h3 className="font-display text-[2rem] leading-none text-deep">{b.title}</h3>
                 <p className="mt-3 max-w-xl leading-relaxed text-ink-soft">{b.body}</p>
@@ -106,7 +106,7 @@ export function MenuList({ locale, menu }: { locale: Locale; menu: MenuCategory[
           {menu.map((c, i) => (
             <li key={c.id}>
               <a href={`#${c.id}`} className="group flex items-baseline gap-2 text-[0.92rem] text-ink-soft transition-colors hover:text-deep">
-                <span className="label text-[0.55rem] text-ochre">0{i + 1}</span>
+                <span className="label text-[0.55rem] text-ochre-ink">0{i + 1}</span>
                 {c.name[locale]}
               </a>
             </li>
@@ -117,7 +117,7 @@ export function MenuList({ locale, menu }: { locale: Locale; menu: MenuCategory[
         <section key={c.id} id={c.id} aria-labelledby={`${c.id}-h`} className="grid scroll-mt-24 gap-10 border-b border-deep/10 py-16 last:border-0 md:py-24 lg:grid-cols-12">
           <div className="lg:col-span-4">
             <div className="lg:sticky lg:top-28">
-              <p className="label text-ochre">0{ci + 1}</p>
+              <p className="label text-ochre-ink">0{ci + 1}</p>
               <h2 id={`${c.id}-h`} className="mt-3 font-display text-[clamp(2.6rem,4.4vw,4.2rem)] leading-[0.95] text-deep" data-split>
                 {c.name[locale]}
               </h2>

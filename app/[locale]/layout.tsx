@@ -21,11 +21,13 @@ const cormorant = Cormorant({
   style: ["normal", "italic"],
   variable: "--font-cormorant",
   display: "swap",
+  // Only the hero title face is preloaded; the rest swap in without competing with the hero image.
+  preload: false,
 });
 // Thin Art Deco caps, the closest open-licence match to the reference title face.
 const poiret = Poiret_One({ subsets: ["latin", "latin-ext"], weight: "400", variable: "--font-poiret", display: "swap" });
-const inter = Inter({ subsets: ["latin", "latin-ext"], variable: "--font-inter", display: "swap" });
-const sacramento = Sacramento({ subsets: ["latin", "latin-ext"], weight: "400", variable: "--font-sacramento", display: "swap" });
+const inter = Inter({ subsets: ["latin", "latin-ext"], variable: "--font-inter", display: "swap", preload: false });
+const sacramento = Sacramento({ subsets: ["latin", "latin-ext"], weight: "400", variable: "--font-sacramento", display: "swap", preload: false });
 
 /**
  * Licensed brand faces. Drop the purchased web fonts into /public/fonts with

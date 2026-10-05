@@ -8,6 +8,7 @@ import type { CatchItem } from "@/lib/content";
 import { getDict } from "@/lib/dict";
 import { coast } from "@/lib/dict-coast";
 import type { Locale } from "@/lib/i18n";
+import { whenIdle } from "@/lib/idle";
 import { alts, photos } from "@/lib/photos";
 import { SeasonStatus } from "../SeasonStatus";
 
@@ -22,7 +23,7 @@ type Props = {
 };
 
 const INK = "#14137a";
-const LEAF = "#7fa872";
+const LEAF = "#4f7a43";
 
 /**
  * Today's catch as a printed editorial page: white, indigo type, a short
@@ -37,18 +38,22 @@ export function CatchBoard({ locale, items, headline, note, day, time, by }: Pro
   const [active, setActive] = useState(0);
   const n = items.length;
 
-  useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
-    const st = ScrollTrigger.create({
-      trigger: root.current,
-      start: "top top",
-      end: "bottom bottom",
-      refreshPriority: -1,
-      invalidateOnRefresh: true,
-      onUpdate: (self) => setActive(Math.min(n - 1, Math.floor(self.progress * n))),
-    });
-    return () => st.kill();
-  }, [n]);
+  useEffect(
+    () =>
+      whenIdle(() => {
+        gsap.registerPlugin(ScrollTrigger);
+        const st = ScrollTrigger.create({
+          trigger: root.current,
+          start: "top top",
+          end: "bottom bottom",
+          refreshPriority: -1,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => setActive(Math.min(n - 1, Math.floor(self.progress * n))),
+        });
+        return () => st.kill();
+      }),
+    [n],
+  );
 
   const it = items[active];
 
@@ -71,7 +76,7 @@ export function CatchBoard({ locale, items, headline, note, day, time, by }: Pro
         <div className="container-k grid flex-1 items-center gap-10 py-20 lg:grid-cols-12 lg:gap-6 lg:py-0">
           {/* editorial block */}
           <div className="lg:col-span-4">
-            <p className="label text-[0.62rem] opacity-60">{t.kicker}</p>
+            <p className="label text-[0.62rem] opacity-80">{t.kicker}</p>
             <h2 id="board-title" className="caps mt-4 text-[clamp(2.2rem,3.4vw,3.2rem)]" style={{ color: INK }}>
               {t.title.caps}
             </h2>
@@ -98,7 +103,7 @@ export function CatchBoard({ locale, items, headline, note, day, time, by }: Pro
                   onClick={() => setActive(i)}
                   aria-current={active === i ? "true" : undefined}
                   className={`group flex w-full items-baseline gap-4 border-t border-[#14137a]/10 py-4 text-left transition-opacity duration-500 last:border-b ${
-                    active === i ? "opacity-100" : "opacity-40 hover:opacity-70"
+                    active === i ? "opacity-100" : "opacity-65 hover:opacity-80"
                   }`}
                 >
                   <span className="w-6 text-[0.62rem] tracking-[0.2em]">0{i + 1}</span>

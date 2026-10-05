@@ -47,7 +47,7 @@ export function Footer({ locale }: { locale: Locale }) {
                 </a>
               </p>
             </div>
-            <Link href={href(locale, "home")} aria-label={venue.name} className="hidden shrink-0 flex-col items-end leading-none md:flex">
+            <Link href={href(locale, "home")} className="hidden shrink-0 flex-col items-end leading-none md:flex">
               <span className="caps text-[1.9rem] tracking-[0.1em]">Plavi Kamen</span>
               <span className="script -mt-1 text-xl">konoba</span>
             </Link>

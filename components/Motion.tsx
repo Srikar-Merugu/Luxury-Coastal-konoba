@@ -5,6 +5,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { whenIdle } from "@/lib/idle";
 
 /**
  * One motion layer for the whole site, driven by data attributes so pages
@@ -81,145 +82,148 @@ export function Motion() {
     if (reduce) return;
     document.documentElement.classList.add("motion-ready");
 
-    const ctx = gsap.context(() => {
-      gsap.utils.toArray<HTMLElement>("[data-split]").forEach((el) => {
-        splitWords(el);
-        const words = el.querySelectorAll(".split-word > span");
-        const onLoad = el.dataset.split === "load";
-        gsap.fromTo(
-          words,
-          { yPercent: 110 },
-          {
-            yPercent: 0,
-            duration: 1.2,
+    // Built at idle so hydration and the first paint aren't held up.
+    return whenIdle(() => {
+      const ctx = gsap.context(() => {
+        gsap.utils.toArray<HTMLElement>("[data-split]").forEach((el) => {
+          splitWords(el);
+          const words = el.querySelectorAll(".split-word > span");
+          const onLoad = el.dataset.split === "load";
+          gsap.fromTo(
+            words,
+            { yPercent: 110 },
+            {
+              yPercent: 0,
+              duration: 1.2,
+              ease: "expo.out",
+              stagger: 0.045,
+              delay: onLoad ? 0.25 : 0,
+              scrollTrigger: onLoad ? undefined : { trigger: el, start: "top 88%" },
+            },
+          );
+        });
+
+        gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((el) => {
+          gsap.to(el, {
+            opacity: 1,
+            y: 0,
+            duration: 1.1,
             ease: "expo.out",
-            stagger: 0.045,
-            delay: onLoad ? 0.25 : 0,
-            scrollTrigger: onLoad ? undefined : { trigger: el, start: "top 88%" },
-          },
-        );
-      });
-
-      gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((el) => {
-        gsap.to(el, {
-          opacity: 1,
-          y: 0,
-          duration: 1.1,
-          ease: "expo.out",
-          delay: Number(el.dataset.reveal) || 0,
-          scrollTrigger: { trigger: el, start: "top 90%" },
+            delay: Number(el.dataset.reveal) || 0,
+            scrollTrigger: { trigger: el, start: "top 90%" },
+          });
         });
-      });
 
-      gsap.utils.toArray<HTMLElement>("[data-clip]").forEach((el) => {
-        const img = el.querySelector("img");
-        const tl = gsap.timeline({ scrollTrigger: { trigger: el, start: "top 85%" } });
-        tl.to(el, { clipPath: "inset(0% 0 0 0)", duration: 1.4, ease: "expo.inOut" });
-        if (img) tl.fromTo(img, { scale: 1.3 }, { scale: 1, duration: 1.8, ease: "expo.out" }, 0);
-      });
+        gsap.utils.toArray<HTMLElement>("[data-clip]").forEach((el) => {
+          const img = el.querySelector("img");
+          const tl = gsap.timeline({ scrollTrigger: { trigger: el, start: "top 85%" } });
+          tl.to(el, { clipPath: "inset(0% 0 0 0)", duration: 1.4, ease: "expo.inOut" });
+          if (img) tl.fromTo(img, { scale: 1.3 }, { scale: 1, duration: 1.8, ease: "expo.out" }, 0);
+        });
 
-      gsap.utils.toArray<HTMLElement>("[data-parallax]").forEach((el) => {
-        const amount = Number(el.dataset.parallax) || 0.12;
-        gsap.fromTo(
-          el,
-          { yPercent: -amount * 100 },
-          {
-            yPercent: amount * 100,
-            ease: "none",
-            scrollTrigger: { trigger: el.parentElement, start: "top bottom", end: "bottom top", scrub: true },
-          },
-        );
-      });
-
-      gsap.utils.toArray<HTMLElement>("[data-zoom]").forEach((el) => {
-        gsap.fromTo(
-          el,
-          { scale: Number(el.dataset.zoom) || 1.3 },
-          { scale: 1, ease: "none", scrollTrigger: { trigger: el.parentElement, start: "top bottom", end: "center center", scrub: true } },
-        );
-      });
-
-      gsap.utils.toArray<HTMLElement>("[data-scrub-words]").forEach((el) => {
-        splitWords(el);
-        gsap.fromTo(
-          el.querySelectorAll(".split-word > span"),
-          { opacity: 0.14 },
-          { opacity: 1, stagger: 0.1, ease: "none", scrollTrigger: { trigger: el, start: "top 80%", end: "bottom 45%", scrub: true } },
-        );
-      });
-
-      const mm = gsap.matchMedia();
-      mm.add("(min-width: 1024px)", () => {
-        // Horizontal galleries hold with CSS sticky (no GSAP pin): pinning
-        // re-parents the section, and React then fails to remove it when
-        // you navigate away. The section is made exactly tall enough for
-        // the track to travel its full width while the stage sticks.
-        const cleanups: (() => void)[] = [];
-        gsap.utils.toArray<HTMLElement>("[data-hscroll]").forEach((section) => {
-          const track = section.querySelector<HTMLElement>("[data-hscroll-track]");
-          if (!track) return;
-          const distance = () => Math.max(0, track.scrollWidth - track.clientWidth);
-          const size = () => {
-            section.style.height = `${window.innerHeight + distance()}px`;
-          };
-          size();
-          const tl = gsap.timeline({
-            scrollTrigger: {
-              trigger: section,
-              start: "top top",
-              end: "bottom bottom",
-              scrub: 0.6,
-              invalidateOnRefresh: true,
-              refreshPriority: 1,
-              onRefreshInit: size,
+        gsap.utils.toArray<HTMLElement>("[data-parallax]").forEach((el) => {
+          const amount = Number(el.dataset.parallax) || 0.12;
+          gsap.fromTo(
+            el,
+            { yPercent: -amount * 100 },
+            {
+              yPercent: amount * 100,
+              ease: "none",
+              scrollTrigger: { trigger: el.parentElement, start: "top bottom", end: "bottom top", scrub: true },
             },
+          );
+        });
+
+        gsap.utils.toArray<HTMLElement>("[data-zoom]").forEach((el) => {
+          gsap.fromTo(
+            el,
+            { scale: Number(el.dataset.zoom) || 1.3 },
+            { scale: 1, ease: "none", scrollTrigger: { trigger: el.parentElement, start: "top bottom", end: "center center", scrub: true } },
+          );
+        });
+
+        gsap.utils.toArray<HTMLElement>("[data-scrub-words]").forEach((el) => {
+          splitWords(el);
+          gsap.fromTo(
+            el.querySelectorAll(".split-word > span"),
+            { opacity: 0.14 },
+            { opacity: 1, stagger: 0.1, ease: "none", scrollTrigger: { trigger: el, start: "top 80%", end: "bottom 45%", scrub: true } },
+          );
+        });
+
+        const mm = gsap.matchMedia();
+        mm.add("(min-width: 1024px)", () => {
+          // Horizontal galleries hold with CSS sticky (no GSAP pin): pinning
+          // re-parents the section, and React then fails to remove it when
+          // you navigate away. The section is made exactly tall enough for
+          // the track to travel its full width while the stage sticks.
+          const cleanups: (() => void)[] = [];
+          gsap.utils.toArray<HTMLElement>("[data-hscroll]").forEach((section) => {
+            const track = section.querySelector<HTMLElement>("[data-hscroll-track]");
+            if (!track) return;
+            const distance = () => Math.max(0, track.scrollWidth - track.clientWidth);
+            const size = () => {
+              section.style.height = `${window.innerHeight + distance()}px`;
+            };
+            size();
+            const tl = gsap.timeline({
+              scrollTrigger: {
+                trigger: section,
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 0.6,
+                invalidateOnRefresh: true,
+                refreshPriority: 1,
+                onRefreshInit: size,
+              },
+            });
+            tl.to(track, { x: () => -distance(), ease: "none" }, 0);
+            const bar = section.querySelector<HTMLElement>("[data-hscroll-progress]");
+            if (bar) tl.fromTo(bar, { scaleX: 0.08 }, { scaleX: 1, ease: "none" }, 0);
+            cleanups.push(() => {
+              section.style.height = "";
+            });
           });
-          tl.to(track, { x: () => -distance(), ease: "none" }, 0);
-          const bar = section.querySelector<HTMLElement>("[data-hscroll-progress]");
-          if (bar) tl.fromTo(bar, { scaleX: 0.08 }, { scaleX: 1, ease: "none" }, 0);
-          cleanups.push(() => {
-            section.style.height = "";
+          return () => cleanups.forEach((fn) => fn());
+        });
+
+        gsap.utils.toArray<HTMLElement>("[data-chapters]").forEach((root) => {
+          const imgs = root.querySelectorAll<HTMLElement>("[data-chapter-img]");
+          const marks = root.querySelectorAll<HTMLElement>("[data-chapter-mark]");
+          root.querySelectorAll<HTMLElement>("[data-chapter]").forEach((ch) => {
+            const i = ch.dataset.chapter;
+            ScrollTrigger.create({
+              trigger: ch,
+              start: "top 55%",
+              end: "bottom 55%",
+              onToggle: (self) => {
+                if (!self.isActive) return;
+                imgs.forEach((img) => img.classList.toggle("is-active", img.dataset.chapterImg === i));
+                marks.forEach((m) => m.classList.toggle("is-active", m.dataset.chapterMark === i));
+              },
+            });
           });
         });
-        return () => cleanups.forEach((fn) => fn());
       });
 
-      gsap.utils.toArray<HTMLElement>("[data-chapters]").forEach((root) => {
-        const imgs = root.querySelectorAll<HTMLElement>("[data-chapter-img]");
-        const marks = root.querySelectorAll<HTMLElement>("[data-chapter-mark]");
-        root.querySelectorAll<HTMLElement>("[data-chapter]").forEach((ch) => {
-          const i = ch.dataset.chapter;
-          ScrollTrigger.create({
-            trigger: ch,
-            start: "top 55%",
-            end: "bottom 55%",
-            onToggle: (self) => {
-              if (!self.isActive) return;
-              imgs.forEach((img) => img.classList.toggle("is-active", img.dataset.chapterImg === i));
-              marks.forEach((m) => m.classList.toggle("is-active", m.dataset.chapterMark === i));
-            },
-          });
-        });
+      // Pins created here add scroll length; section-level triggers created
+      // earlier (by their own components) must re-measure, in page order.
+      const raf = requestAnimationFrame(() => {
+        ScrollTrigger.sort();
+        ScrollTrigger.refresh();
       });
+
+      // Images and fonts change layout after first paint.
+      const refresh = () => ScrollTrigger.refresh();
+      window.addEventListener("load", refresh);
+      document.fonts?.ready.then(refresh);
+
+      return () => {
+        cancelAnimationFrame(raf);
+        window.removeEventListener("load", refresh);
+        ctx.revert();
+      };
     });
-
-    // Pins created here add scroll length; section-level triggers created
-    // earlier (by their own components) must re-measure, in page order.
-    const raf = requestAnimationFrame(() => {
-      ScrollTrigger.sort();
-      ScrollTrigger.refresh();
-    });
-
-    // Images and fonts change layout after first paint.
-    const refresh = () => ScrollTrigger.refresh();
-    window.addEventListener("load", refresh);
-    document.fonts?.ready.then(refresh);
-
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("load", refresh);
-      ctx.revert();
-    };
   }, [pathname]);
 
   return null;
