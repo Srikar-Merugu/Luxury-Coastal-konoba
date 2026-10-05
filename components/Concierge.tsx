@@ -90,6 +90,7 @@ export function Concierge({ locale }: { locale: Locale }) {
         onClick={() => setOpen(true)}
         aria-expanded={open}
         aria-controls="concierge"
+        data-concierge-launcher
         className={`fixed bottom-[5.25rem] right-4 z-40 flex items-center gap-2 rounded-full bg-[#0b5f6e] py-3 pl-4 pr-5 text-white shadow-2xl shadow-deep/30 transition-all duration-500 hover:bg-deep sm:bottom-6 sm:right-6 ${
           open ? "pointer-events-none translate-y-4 opacity-0" : ""
         }`}

@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { BookingForm } from "@/components/BookingForm";
 import { CoastBar } from "@/components/CoastBar";
 import { TableWelcome } from "@/components/MenuTools";
+import { TableOrder } from "@/components/TableOrder";
 import { Hours } from "@/components/Hours";
 import { Pic } from "@/components/Pic";
 import { BookingCta, Directions, FaqList, MenuList, PageHero } from "@/components/sections";
@@ -53,7 +54,9 @@ export default async function Page({ params }: Props) {
           <Suspense>
             <TableWelcome locale={locale} />
           </Suspense>
-          <MenuList locale={locale} menu={menu} />
+          <TableOrder locale={locale}>
+            <MenuList locale={locale} menu={menu} />
+          </TableOrder>
           <BookingCta locale={locale} />
         </>
       );

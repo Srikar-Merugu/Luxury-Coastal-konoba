@@ -4,6 +4,7 @@ import { SITE_ID, supabaseConfigured } from "@/lib/supabase";
 import { currentAdmin } from "@/lib/supabase-server";
 import { signOut } from "./actions";
 import { Dashboard, zagrebDay } from "./Dashboard";
+import { LiveOrders } from "./LiveOrders";
 import { BookingList, CatchEditor, LoginForm, PushAlerts, SeasonForm, type BookingRow } from "./forms";
 
 export const dynamic = "force-dynamic";
@@ -71,6 +72,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 
   return (
     <Shell email={user.email}>
+      <LiveOrders />
+
       <Dashboard bookings={(overview ?? []) as BookingRow[]} />
 
       <section className={card} aria-labelledby="bookings">

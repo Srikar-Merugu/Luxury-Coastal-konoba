@@ -196,6 +196,7 @@ export function Header({ locale }: { locale: Locale }) {
       {/* Phones: booking stays one thumb away */}
       {page !== "book" && (
         <Link
+          data-booking-bar
           href={href(locale, "book")}
           className={`fixed inset-x-4 bottom-4 z-40 flex items-center justify-between rounded-full bg-sea/95 py-2 pl-6 pr-2 text-stone shadow-2xl shadow-deep/30 backdrop-blur transition-all duration-500 sm:hidden ${
             solid && !open ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-24 opacity-0"

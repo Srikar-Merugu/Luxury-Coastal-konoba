@@ -214,3 +214,48 @@ end $$;
 revoke execute on function notify_new_booking() from public, anon, authenticated;
 drop trigger if exists booking_push on booking_requests;
 create trigger booking_push after insert on booking_requests for each row execute function notify_new_booking();
+
+/* ---------- ordering from the table (QR menu) ---------- */
+
+create table if not exists table_orders (
+  id uuid primary key default gen_random_uuid(),
+  site_id text not null,
+  table_no int not null check (table_no between 1 and 200),
+  items jsonb not null,
+  note text not null default '' check (char_length(note) <= 300),
+  total numeric(8,2) not null default 0,
+  locale text not null default 'en' check (locale in ('hr','en','de')),
+  status text not null default 'new' check (status in ('new','preparing','served','cancelled')),
+  guest_token text not null,
+  push_sent_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create table if not exists table_calls (
+  id uuid primary key default gen_random_uuid(),
+  site_id text not null,
+  table_no int not null check (table_no between 1 and 200),
+  kind text not null check (kind in ('waiter','bill')),
+  status text not null default 'open' check (status in ('open','done')),
+  push_sent_at timestamptz,
+  created_at timestamptz not null default now()
+);
+alter table table_orders enable row level security;
+alter table table_calls enable row level security;
+create policy "public insert" on table_orders for insert to anon, authenticated with check (status = 'new');
+create policy "admin read" on table_orders for select to authenticated using (is_site_admin(site_id));
+create policy "admin update" on table_orders for update to authenticated using (is_site_admin(site_id)) with check (is_site_admin(site_id));
+create policy "public insert" on table_calls for insert to anon, authenticated with check (status = 'open');
+create policy "admin read" on table_calls for select to authenticated using (is_site_admin(site_id));
+create policy "admin update" on table_calls for update to authenticated using (is_site_admin(site_id)) with check (is_site_admin(site_id));
+
+-- the guest's phone reads its own order status with its token
+create or replace function order_status(order_id uuid, token text)
+returns table (status text, items jsonb, total numeric, created_at timestamptz, updated_at timestamptz)
+language sql stable security definer set search_path = public as $$
+  select status, items, total, created_at, updated_at from table_orders where id = order_id and guest_token = token;
+$$;
+revoke execute on function order_status(uuid, text) from public;
+grant execute on function order_status(uuid, text) to anon, authenticated;
+-- notify_table_event(): same pattern as notify_new_booking(), posting { order_id } / { call_id }
+-- to the booking-push function; triggers order_push and call_push run it after insert.

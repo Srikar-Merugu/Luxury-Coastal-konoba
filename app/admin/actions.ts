@@ -163,3 +163,46 @@ export async function sendTestPush(): Promise<FormState> {
   if (error) return { error: `Could not send: ${error.message}` };
   return data?.sent ? { ok: "Test alert sent. Check your phone." } : { error: "No device is subscribed yet." };
 }
+
+export type LiveOrder = {
+  id: string;
+  table_no: number;
+  items: { name_en: string; name_hr: string; qty: number; note: string; price: string }[];
+  note: string;
+  total: number;
+  locale: string;
+  status: "new" | "preparing" | "served" | "cancelled";
+  created_at: string;
+  updated_at: string;
+};
+export type LiveCall = { id: string; table_no: number; kind: "waiter" | "bill"; created_at: string };
+
+/** Open orders and calls for the live board (served orders stay 2 h). */
+export async function getLive(): Promise<{ orders: LiveOrder[]; calls: LiveCall[] } | null> {
+  const { supabase, user, allowed } = await currentAdmin();
+  if (!user || !allowed) return null;
+  const since = new Date(Date.now() - 12 * 3600_000).toISOString();
+  const [{ data: orders }, { data: calls }] = await Promise.all([
+    supabase.from("table_orders").select("id,table_no,items,note,total,locale,status,created_at,updated_at").eq("site_id", SITE_ID).gte("created_at", since).order("created_at"),
+    supabase.from("table_calls").select("id,table_no,kind,created_at").eq("site_id", SITE_ID).eq("status", "open").gte("created_at", since).order("created_at"),
+  ]);
+  const recent = Date.now() - 2 * 3600_000;
+  return {
+    orders: ((orders ?? []) as LiveOrder[]).filter((o) => o.status === "new" || o.status === "preparing" || (o.status === "served" && new Date(o.updated_at).getTime() > recent)),
+    calls: (calls ?? []) as LiveCall[],
+  };
+}
+
+export async function setOrderStatus(id: string, status: "preparing" | "served" | "cancelled"): Promise<FormState> {
+  const { supabase, user, allowed } = await currentAdmin();
+  if (!user || !allowed) return { error: "You are signed out." };
+  const { error } = await supabase.from("table_orders").update({ status, updated_at: new Date().toISOString() }).eq("id", id).eq("site_id", SITE_ID);
+  return error ? { error: error.message } : { ok: "Saved." };
+}
+
+export async function closeCall(id: string): Promise<FormState> {
+  const { supabase, user, allowed } = await currentAdmin();
+  if (!user || !allowed) return { error: "You are signed out." };
+  const { error } = await supabase.from("table_calls").update({ status: "done" }).eq("id", id).eq("site_id", SITE_ID);
+  return error ? { error: error.message } : { ok: "Done." };
+}

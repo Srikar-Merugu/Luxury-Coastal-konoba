@@ -91,6 +91,11 @@ What happens then:
   /admin in the guest's language.
 - **QR table menus:** `/t/<table>` opens the menu in the phone's language; `/admin/qr` prints
   cards. Menu has Vegan / Vegetarian / Gluten-free filters.
+- **Ordering from the table:** in table mode (`?table=N`, from the QR) each dish gets "Add";
+  the basket sends an order to the kitchen (prices recomputed on the server; fish by weight
+  priced at the table), the guest follows its status, and can call the waiter or ask for the
+  bill. /admin has a live board (New → Preparing → Served) with a chime and phone alerts.
+  No online payment; guests pay at the table.
 - **Owner dashboard:** today's tables, next 7 days, last-30-day stats, CSV export.
 - **Phone alerts:** /admin installs as an app; new requests trigger the `booking-push`
   Supabase function (web push).

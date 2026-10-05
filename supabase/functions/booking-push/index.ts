@@ -1,5 +1,6 @@
-// Sends a push alert to the owner's phones for each new table request.
-// Called by the database (trigger on booking_requests) with { booking_id },
+// Sends a push alert to the owner's phones for each new table request,
+// table order and waiter/bill call. Called by database triggers with
+// { booking_id } / { order_id } / { call_id },
 // or from /admin with { test: true, site } by a signed-in admin.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import webpush from "npm:web-push@3.6.7";
@@ -30,6 +31,30 @@ Deno.serve(async (req) => {
       body: `${b.name} · ${day} ${b.time} · ${b.seating}${b.large_group ? " · large group" : ""}${b.note ? ` · “${String(b.note).slice(0, 60)}”` : ""}`,
       url: "/admin",
       tag: b.id,
+    };
+  } else if (typeof body.order_id === "string") {
+    const { data: o } = await service.from("table_orders").select("*").eq("id", body.order_id).maybeSingle();
+    if (!o || o.status !== "new" || o.push_sent_at || Date.now() - new Date(o.created_at).getTime() > 10 * 60_000) return json({ sent: 0 });
+    await service.from("table_orders").update({ push_sent_at: new Date().toISOString() }).eq("id", o.id);
+    site = o.site_id;
+    const items = (o.items as { name_en: string; qty: number }[]) ?? [];
+    const count = items.reduce((n, i) => n + i.qty, 0);
+    payload = {
+      title: `Table ${o.table_no} · new order · ${count} ${count === 1 ? "dish" : "dishes"}`,
+      body: items.map((i) => `${i.qty}× ${i.name_en}`).join(", ").slice(0, 160) + (o.note ? ` · “${String(o.note).slice(0, 60)}”` : ""),
+      url: "/admin",
+      tag: o.id,
+    };
+  } else if (typeof body.call_id === "string") {
+    const { data: c } = await service.from("table_calls").select("*").eq("id", body.call_id).maybeSingle();
+    if (!c || c.status !== "open" || c.push_sent_at || Date.now() - new Date(c.created_at).getTime() > 10 * 60_000) return json({ sent: 0 });
+    await service.from("table_calls").update({ push_sent_at: new Date().toISOString() }).eq("id", c.id);
+    site = c.site_id;
+    payload = {
+      title: c.kind === "bill" ? `Table ${c.table_no} · bill, please` : `Table ${c.table_no} · calling the waiter`,
+      body: c.kind === "bill" ? "The guests at this table would like to pay." : "The guests at this table would like some help.",
+      url: "/admin",
+      tag: `call-${c.table_no}-${c.kind}`,
     };
   } else if (body.test === true && typeof body.site === "string") {
     const asUser = createClient(url, anon, { global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } }, auth: { persistSession: false } });
