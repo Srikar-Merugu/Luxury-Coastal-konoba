@@ -101,7 +101,7 @@ export function MenuList({ locale, menu }: { locale: Locale; menu: MenuCategory[
   const t = getDict(locale).menuPage;
   return (
     <div className="container-k pb-24 md:pb-36">
-      <nav aria-label={t.eyebrow} className="sticky top-0 z-30 -mx-4 border-b border-deep/10 bg-stone/90 px-4 backdrop-blur-xl sm:-mx-8 sm:px-8 xl:-mx-14 xl:px-14">
+      <nav aria-label={t.eyebrow} className="sticky top-0 z-30 -mx-4 border-b border-deep/10 bg-stone/[0.97] px-4 sm:-mx-8 sm:px-8 xl:-mx-14 xl:px-14">
         <ul className="flex gap-8 overflow-x-auto whitespace-nowrap py-5 [scrollbar-width:none]">
           {menu.map((c, i) => (
             <li key={c.id}>

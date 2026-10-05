@@ -81,7 +81,7 @@ export function Footer({ locale }: { locale: Locale }) {
             <div className="flex items-center gap-6">
               <nav aria-label={t.footer.language} className="flex gap-4 text-[0.68rem] uppercase tracking-[0.2em]">
                 {locales.map((l) => (
-                  <Link key={l} href={href(l, "home")} hrefLang={l} aria-current={l === locale ? "true" : undefined} className="text-white/60 hover:text-white aria-[current=true]:text-white">
+                  <Link key={l} href={href(l, "home")} hrefLang={l} aria-current={l === locale ? "true" : undefined} className="text-white/80 hover:text-white aria-[current=true]:text-white aria-[current=true]:underline">
                     {localeNames[l].slice(0, 2)}
                   </Link>
                 ))}
