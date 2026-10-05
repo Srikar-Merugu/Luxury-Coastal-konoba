@@ -34,25 +34,65 @@ type Provider = {
   text: (evt: StreamEvent) => string | undefined;
 };
 
-const openAiCompatible = (url: string, model: string) => (key: string, system: string, messages: Msg[]) =>
-  fetch(url, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model, max_tokens: MAX_TOKENS, stream: true, messages: [{ role: "system", content: system }, ...messages] }),
-  });
+/**
+ * Model names change often (providers retire them), so unless a model is
+ * pinned with an env var, ask the provider which ones exist and take the
+ * best match from a preference list. Cached per server instance for 6 h.
+ */
+const modelCache = new Map<string, { at: number; models: string[] }>();
+async function pickModels(base: string, key: string, prefer: RegExp[], skip: RegExp): Promise<string[]> {
+  const hit = modelCache.get(base);
+  if (hit && Date.now() - hit.at < 6 * 3600_000) return hit.models;
+  const res = await fetch(`${base}/models`, { headers: { Authorization: `Bearer ${key}` } });
+  if (!res.ok) throw new Error(`models ${res.status}`);
+  const ids: string[] = ((await res.json()).data ?? []).map((m: { id: string }) => String(m.id).replace(/^models\//, "")).filter((id: string) => !skip.test(id));
+  const version = (id: string) => Number(id.match(/(\d+(?:\.\d+)?)/)?.[1] ?? 0);
+  const ranked: string[] = [];
+  for (const re of prefer) ranked.push(...ids.filter((id) => re.test(id) && !ranked.includes(id)).sort((a, b) => version(b) - version(a)));
+  const models = ranked.slice(0, 3);
+  modelCache.set(base, { at: Date.now(), models });
+  return models;
+}
+
+const openAiCompatible = (base: string, pinned: string | undefined, prefer: RegExp[], skip: RegExp) => async (key: string, system: string, messages: Msg[]) => {
+  const candidates = pinned ? [pinned] : await pickModels(base, key, prefer, skip);
+  let last: Response | null = null;
+  for (const model of candidates) {
+    last = await fetch(`${base}/chat/completions`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model, max_tokens: MAX_TOKENS, stream: true, messages: [{ role: "system", content: system }, ...messages] }),
+    });
+    if (last.status !== 404 && last.status !== 400) return last; // a missing/unsupported model: try the next one
+    console.error(`[concierge] model ${model} rejected (${last.status})`);
+  }
+  return last ?? new Response("no model", { status: 404 });
+};
 const openAiText = (evt: StreamEvent): string | undefined => evt.choices?.[0]?.delta?.content;
 
 const providers: Provider[] = [
   {
     name: "gemini",
     key: process.env.GEMINI_API_KEY,
-    call: openAiCompatible("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", process.env.GEMINI_MODEL || "gemini-2.5-flash"),
+    // newest stable "flash" model (fast, free tier), then any flash, then pro
+    call: openAiCompatible(
+      "https://generativelanguage.googleapis.com/v1beta/openai",
+      process.env.GEMINI_MODEL,
+      [/^gemini-[\d.]+-flash$/, /^gemini-[\d.]+-flash-lite$/, /^gemini-.*flash/, /^gemini-[\d.]+-pro$/],
+      /image|tts|audio|live|embed|vision|aqa|learnlm|gemma|computer|robotics|native/,
+    ),
     text: openAiText,
   },
   {
     name: "groq",
     key: process.env.GROQ_API_KEY,
-    call: openAiCompatible("https://api.groq.com/openai/v1/chat/completions", process.env.GROQ_MODEL || "llama-3.3-70b-versatile"),
+    // a large general chat model: Llama 70B+ or GPT-OSS 120B, then other Llama/Qwen
+    call: openAiCompatible(
+      "https://api.groq.com/openai/v1",
+      process.env.GROQ_MODEL,
+      [/llama.*(70b|maverick|scout)/i, /gpt-oss-120b/i, /llama/i, /qwen/i, /gpt-oss/i],
+      /whisper|tts|guard|embed|playai|distil|orpheus|compound/i,
+    ),
     text: openAiText,
   },
   {

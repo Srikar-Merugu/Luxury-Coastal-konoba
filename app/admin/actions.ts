@@ -2,6 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { getCapacity } from "@/lib/data";
 import { guestMail, sendMail, type Booking } from "@/lib/email";
 import { photos } from "@/lib/photos";
 import { CONTENT_TAG, SITE_ID } from "@/lib/supabase";
@@ -62,7 +63,8 @@ export async function decideBooking(_: FormState, form: FormData): Promise<FormS
     return { error: "This request was already answered." };
   }
 
-  const mail = await sendMail(guestMail(data as Booking, status));
+  const { minutes } = await getCapacity();
+  const mail = await sendMail(guestMail(data as Booking, status, { minutes }));
   console.log("[admin] booking", id, status, mail.ok ? "guest emailed" : `guest email NOT sent: ${mail.error}`);
   revalidatePath("/admin");
   const word = status === "confirmed" ? "Confirmed" : "Declined";

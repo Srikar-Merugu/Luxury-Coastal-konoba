@@ -1,7 +1,9 @@
 import "server-only";
 import nodemailer, { type Transporter } from "nodemailer";
 import { venue } from "./content";
-import type { Locale } from "./i18n";
+import { bookingIcs, renderEmail } from "./email-template";
+import { href, type Locale } from "./i18n";
+import { guestWhatsApp, venueWhatsApp } from "./whatsapp";
 
 /**
  * Booking emails. Sent through Gmail when SMTP_USER and SMTP_PASS (a Google
@@ -25,7 +27,8 @@ export type Booking = {
   locale: Locale;
 };
 
-type Mail = { to: string; subject: string; text: string; replyTo?: string };
+type Attachment = { filename: string; content: string; contentType: string };
+type Mail = { to: string; subject: string; text: string; html?: string; replyTo?: string; attachments?: Attachment[] };
 type Sent = { ok: boolean; error?: string };
 
 /** Sends one email; never throws. `error` says why it was not sent. */
@@ -49,7 +52,17 @@ async function viaGmail(mail: Mail): Promise<Sent> {
   });
   try {
     // Gmail only sends as the signed-in account, so the address stays `user`.
-    await transport.sendMail({ from: { name: venue.name, address: user }, to: mail.to, subject: mail.subject, text: mail.text, replyTo: mail.replyTo });
+    await transport.sendMail({
+      from: { name: venue.name, address: user },
+      to: mail.to,
+      subject: mail.subject,
+      text: mail.text,
+      ...(mail.html && { html: mail.html }),
+      ...(mail.attachments && { attachments: mail.attachments.map((a) => ({ filename: a.filename, content: Buffer.from(a.content).toString("base64") })) }),
+      html: mail.html,
+      replyTo: mail.replyTo,
+      attachments: mail.attachments?.map((a) => ({ filename: a.filename, content: a.content, contentType: a.contentType })),
+    });
     return { ok: true };
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
@@ -95,107 +108,178 @@ const copy = {
   hr: {
     received: {
       subject: "Primili smo vaš upit za stol",
-      intro: (n: string) => `Poštovani/a ${n},\n\nhvala na upitu. Javit ćemo vam se uskoro s potvrdom. Ovo još nije potvrda rezervacije.`,
+      status: "Upit zaprimljen",
+      title: (n: string) => `Hvala, ${n}!`,
+      text: "Primili smo vaš upit i javit ćemo vam se uskoro s potvrdom, obično u nekoliko sati. Ovo još nije potvrda rezervacije.",
     },
     confirmed: {
       subject: "Vaš stol je potvrđen",
-      intro: (n: string) => `Poštovani/a ${n},\n\nvaš stol je potvrđen. Veselimo se vašem dolasku.`,
+      status: "Potvrđeno",
+      title: (n: string) => `Vidimo se uskoro, ${n}!`,
+      text: "Vaš stol je potvrđen. Veselimo se vašem dolasku. Ako vam se planovi promijene, javite nam se.",
     },
     declined: {
       subject: "Nažalost, nemamo slobodan stol",
-      intro: (n: string) =>
-        `Poštovani/a ${n},\n\nnažalost, za traženi termin nemamo slobodan stol. Nazovite nas i pronaći ćemo drugi termin.`,
+      status: "Nema slobodnog stola",
+      title: (n: string) => `Žao nam je, ${n}`,
+      text: "Za traženi termin nemamo slobodan stol. Odaberite drugo vrijeme ili nas nazovite i rado ćemo pronaći rješenje.",
     },
-    details: "Detalji",
-    // 2–4 osobe, otherwise osoba (1 osoba, 5 osoba, 12 osoba)
-    people: (n: number) => (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? "osobe" : "osoba"),
-    seating: "Mjesto",
-    group: "Velika grupa",
-    note: "Napomena",
-    sign: "Konoba Plavi Kamen",
+    labels: { date: "Datum", time: "Vrijeme", guests: "Osobe", seating: "Mjesto", group: "Velika grupa", groupYes: "Da, javit ćemo se s prijedlogom menija", note: "Napomena" },
+    people: (n: number) => `${n} ${n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? "osobe" : "osoba"}`,
+    buttons: { directions: "Kako do nas", whatsapp: "WhatsApp", another: "Odaberite drugo vrijeme" },
+    calendar: "U privitku je pozivnica za vaš kalendar.",
+    request: "Odgovaramo e-poštom, obično u nekoliko sati.",
+    hello: (n: string) => `Poštovani/a ${n},`,
   },
   en: {
     received: {
       subject: "We received your table request",
-      intro: (n: string) => `Hello ${n},\n\nthank you for your request. We will reply shortly to confirm. This is not a confirmation yet.`,
+      status: "Request received",
+      title: (n: string) => `Thank you, ${n}!`,
+      text: "We have your request and will email you shortly to confirm, usually within a few hours. This is not a confirmation yet.",
     },
     confirmed: {
       subject: "Your table is confirmed",
-      intro: (n: string) => `Hello ${n},\n\nyour table is confirmed. We look forward to seeing you.`,
+      status: "Confirmed",
+      title: (n: string) => `See you soon, ${n}!`,
+      text: "Your table is confirmed. We look forward to welcoming you. If your plans change, just let us know.",
     },
     declined: {
       subject: "Sorry, we have no table at that time",
-      intro: (n: string) => `Hello ${n},\n\nunfortunately we have no table free at the time you asked for. Call us and we will find another time.`,
+      status: "No table available",
+      title: (n: string) => `We're sorry, ${n}`,
+      text: "We have no table free at the time you asked for. Please pick another time, or call us and we'll gladly find a way.",
     },
-    details: "Details",
-    people: (n: number) => (n === 1 ? "person" : "people"),
-    seating: "Seating",
-    group: "Large group",
-    note: "Note",
-    sign: "Konoba Plavi Kamen",
+    labels: { date: "Date", time: "Time", guests: "Guests", seating: "Seating", group: "Large group", groupYes: "Yes, we'll suggest a set menu", note: "Note" },
+    people: (n: number) => `${n} ${n === 1 ? "person" : "people"}`,
+    buttons: { directions: "Get directions", whatsapp: "WhatsApp", another: "Choose another time" },
+    calendar: "A calendar invite is attached.",
+    request: "We reply by email, usually within a few hours.",
+    hello: (n: string) => `Hello ${n},`,
   },
   de: {
     received: {
       subject: "Wir haben Ihre Tischanfrage erhalten",
-      intro: (n: string) =>
-        `Hallo ${n},\n\nvielen Dank für Ihre Anfrage. Wir melden uns in Kürze mit einer Bestätigung. Dies ist noch keine Bestätigung.`,
+      status: "Anfrage erhalten",
+      title: (n: string) => `Vielen Dank, ${n}!`,
+      text: "Wir haben Ihre Anfrage erhalten und melden uns in Kürze per E-Mail mit einer Bestätigung, meist innerhalb weniger Stunden. Dies ist noch keine Bestätigung.",
     },
     confirmed: {
       subject: "Ihr Tisch ist bestätigt",
-      intro: (n: string) => `Hallo ${n},\n\nIhr Tisch ist bestätigt. Wir freuen uns auf Ihren Besuch.`,
+      status: "Bestätigt",
+      title: (n: string) => `Bis bald, ${n}!`,
+      text: "Ihr Tisch ist bestätigt. Wir freuen uns auf Ihren Besuch. Falls sich Ihre Pläne ändern, geben Sie uns bitte Bescheid.",
     },
     declined: {
       subject: "Leider ist kein Tisch frei",
-      intro: (n: string) =>
-        `Hallo ${n},\n\nleider ist zur gewünschten Zeit kein Tisch frei. Rufen Sie uns an, dann finden wir einen anderen Termin.`,
+      status: "Kein Tisch frei",
+      title: (n: string) => `Es tut uns leid, ${n}`,
+      text: "Zur gewünschten Zeit ist leider kein Tisch frei. Bitte wählen Sie eine andere Zeit oder rufen Sie uns an, wir finden gern eine Lösung.",
     },
-    details: "Details",
-    people: (n: number) => (n === 1 ? "Person" : "Personen"),
-    seating: "Platz",
-    group: "Große Gruppe",
-    note: "Notiz",
-    sign: "Konoba Plavi Kamen",
+    labels: { date: "Datum", time: "Uhrzeit", guests: "Personen", seating: "Platz", group: "Große Gruppe", groupYes: "Ja, wir schlagen ein Menü vor", note: "Notiz" },
+    people: (n: number) => `${n} ${n === 1 ? "Person" : "Personen"}`,
+    buttons: { directions: "Route planen", whatsapp: "WhatsApp", another: "Andere Zeit wählen" },
+    calendar: "Eine Kalendereinladung ist angehängt.",
+    request: "Wir antworten per E-Mail, meist innerhalb weniger Stunden.",
+    hello: (n: string) => `Hallo ${n},`,
   },
 } as const;
 
-function details(b: Booking, locale: Locale) {
-  const c = copy[locale];
-  return [
-    `${fmtDate(b.date, locale)}, ${b.time}`,
-    `${b.party_size} ${c.people(b.party_size)}`,
-    `${c.seating}: ${seatingWord[locale][b.seating] ?? b.seating}`,
-    b.large_group ? c.group : null,
-    b.note ? `${c.note}: ${b.note}` : null,
-  ]
-    .filter(Boolean)
-    .join("\n");
-}
-
-const footer = `\n\n${venue.name}\n${venue.street}, ${venue.postalCode} ${venue.locality}, ${venue.island}\n${venue.phone}\n\n— Demo concept by Kyro Studio (kyrostudio.eu). Fictional venue.`;
+const siteUrl = () => (process.env.NEXT_PUBLIC_SITE_URL || venue.url).replace(/\/$/, "");
 
 /** Where new requests go: BOOKING_INBOX, else the Gmail account that sends. */
 const ownerInbox = () => process.env.BOOKING_INBOX || process.env.SMTP_USER || "";
 
-export function guestMail(b: Booking, kind: "received" | "confirmed" | "declined"): Mail {
-  const c = copy[b.locale] ?? copy.en;
-  return {
-    to: b.email,
-    subject: `${c[kind].subject} · ${venue.name}`,
-    text: `${c[kind].intro(b.name)}\n\n${c.details}:\n${details(b, b.locale)}${footer}`,
-    replyTo: ownerInbox() || venue.email,
-  };
+function rowsFor(b: Booking, locale: Locale): [string, string][] {
+  const c = copy[locale];
+  return [
+    [c.labels.date, fmtDate(b.date, locale)],
+    [c.labels.time, locale === "de" ? `${b.time} Uhr` : b.time],
+    [c.labels.guests, c.people(b.party_size)],
+    [c.labels.seating, seatingWord[locale][b.seating] ?? b.seating],
+    ...(b.large_group ? ([[c.labels.group, c.labels.groupYes]] as [string, string][]) : []),
+    ...(b.note ? ([[c.labels.note, b.note]] as [string, string][]) : []),
+  ];
+}
+
+export function guestMail(b: Booking, kind: "received" | "confirmed" | "declined", opts: { minutes?: number } = {}): Mail {
+  const locale = copy[b.locale] ? b.locale : "en";
+  const c = copy[locale];
+  const k = c[kind];
+  const site = siteUrl();
+  const rows = rowsFor(b, locale);
+  const buttons =
+    kind === "declined"
+      ? [
+          { label: c.buttons.another, href: `${site}${href(locale, "book")}`, primary: true },
+          { label: c.buttons.whatsapp, href: venueWhatsApp() },
+        ]
+      : [
+          { label: c.buttons.directions, href: venue.mapsUrl, primary: true },
+          { label: c.buttons.whatsapp, href: venueWhatsApp() },
+        ];
+  const smallprint = kind === "confirmed" ? c.calendar : kind === "received" ? c.request : undefined;
+  const html = renderEmail({
+    lang: locale,
+    preheader: `${k.status} · ${fmtDate(b.date, locale)}, ${b.time} · ${c.people(b.party_size)}`,
+    status: { label: k.status, tone: kind === "received" ? "pending" : kind === "confirmed" ? "ok" : "no" },
+    title: k.title(b.name),
+    paragraphs: [k.text],
+    rows,
+    buttons,
+    smallprint,
+    site,
+  });
+  const text = `${c.hello(b.name)}\n\n${k.text}\n\n${rows.map(([l, v]) => `${l}: ${v}`).join("\n")}\n\n${venue.name}\n${venue.street}, ${venue.postalCode} ${venue.locality}, ${venue.island}\n${venue.phone}\n\n— Demo concept by Kyro Studio (kyrostudio.eu). Fictional venue.`;
+  const attachments =
+    kind === "confirmed" && b.id
+      ? [
+          {
+            filename: "plavi-kamen-table.ics",
+            contentType: "text/calendar; charset=utf-8; method=PUBLISH",
+            content: bookingIcs({
+              id: b.id,
+              date: b.date,
+              time: b.time,
+              minutes: opts.minutes ?? 120,
+              title: `${venue.name} · ${c.people(b.party_size)}`,
+              description: `${venue.phone} · ${venue.mapsUrl}`,
+            }),
+          },
+        ]
+      : undefined;
+  return { to: b.email, subject: `${k.subject} · ${venue.name}`, text, html, replyTo: ownerInbox() || venue.email, attachments };
 }
 
 export function ownerMail(b: Booking): Mail | null {
   const to = ownerInbox();
   if (!to) return null;
-  const site = process.env.NEXT_PUBLIC_SITE_URL || venue.url;
+  const site = siteUrl();
+  const rows: [string, string][] = [
+    ...rowsFor(b, "en"),
+    ["Name", b.name],
+    ["Phone", b.phone],
+    ["Email", b.email],
+    ["Language", b.locale.toUpperCase()],
+  ];
+  const html = renderEmail({
+    lang: "en",
+    preheader: `${b.name} · ${b.party_size} guests · ${b.date} ${b.time}`,
+    status: { label: b.large_group ? "New request · large group" : "New request", tone: "pending" },
+    title: `${b.name}, ${b.party_size} ${b.party_size === 1 ? "guest" : "guests"}`,
+    paragraphs: ["A new table request is waiting. Confirm or decline it in the admin; the guest is emailed in their language."],
+    rows,
+    buttons: [
+      { label: "Open admin", href: `${site}/admin`, primary: true },
+      { label: "WhatsApp guest", href: guestWhatsApp(b.phone, `Hello ${b.name}, this is ${venue.name} about your table request (${b.date}, ${b.time}).`) },
+    ],
+    site,
+  });
   return {
     to,
     subject: `New table request: ${b.name}, ${b.party_size} ppl, ${b.date} ${b.time}${b.large_group ? " (large group)" : ""}`,
-    text:
-      `New request (pending)\n\n${details(b, "en")}\n\nName: ${b.name}\nPhone: ${b.phone}\nEmail: ${b.email}\nLanguage: ${b.locale.toUpperCase()}\n\n` +
-      `Confirm or decline in ${site}/admin`,
+    text: `New request (pending)\n\n${rows.map(([l, v]) => `${l}: ${v}`).join("\n")}\n\nConfirm or decline in ${site}/admin`,
+    html,
     replyTo: b.email,
   };
 }
