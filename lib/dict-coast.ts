@@ -168,7 +168,7 @@ export const coast: Record<Locale, CoastDict> = {
         { caps: "MORGEN", script: "im ersten Licht", body: "Luka fährt hinaus, bevor der Ort erwacht. Was er mitbringt, ist die Speisekarte: nichts Tiefgekühltes, nichts Eingeflogenes.", left: "boat", right: "catch" },
         { caps: "MITTAG", script: "lang und gemütlich", body: "Pinienschatten, kühler Žlahtina, Scampi Buzara. Die Terrasse liegt eine Stufe über dem Wasser, zwischen den Gängen hört man das Meer.", left: "scampi", right: "hands" },
         { caps: "PEKA", script: "unter der Glut", body: "Oktopus oder Lamm von der Insel, zwei Stunden unter der eisernen Glocke gegart. Einen Tag vorher bestellen, wir machen das Feuer.", left: "peka", right: "grove" },
-        { caps: "ABEND", script: "der schönste Tisch der Bucht", body: "Die Sonne sinkt hinter Lošinj, die Olivenholzglut ist bereit. Zur goldenen Stunde ist die Terrasse zuerst voll, bitte reservieren.", left: "terrace", right: "grill" },
+        { caps: "ABEND", script: "der schönste Tisch der Bucht", body: "Die Sonne sinkt hinter Lošinj, die Olivenholzglut ist bereit. Zur goldenen Stunde ist die Terrasse als Erstes ausgebucht, bitte reservieren.", left: "terrace", right: "grill" },
         { caps: "NACHT", script: "Kerzen am Wasser", body: "Laternen auf den Tischen, ein letzter Rakija, Boote stoßen leise an den Steg. Niemand hat es eilig.", left: "bluehour", right: "house" },
       ],
     },
@@ -181,7 +181,7 @@ export const coast: Record<Locale, CoastDict> = {
         { caps: "LANGES MITTAGESSEN", script: "unter Pinien", body: "Fisch vom Grill, Mangold mit Kartoffeln, eine Karaffe Weißwein. Hier wird nicht gehetzt.", meta: "12:00 – 16:00 · Terrasse", photo: "hands" },
         { caps: "TISCH ZUM SONNENUNTERGANG", script: "wenn das Licht golden wird", body: "Die gefragtesten Tische der Bucht, direkt am Wasser. Im Sommer ein, zwei Tage vorher reservieren.", meta: "Ab 19:00 · Mit Reservierung", photo: "terrace" },
         { caps: "IHR ANLASS", script: "bis zu dreißig Gäste", body: "Geburtstage, Familientreffen, Segelcrews. Wir decken eine lange Tafel und schlagen ein Menü vor.", meta: "Gruppen ab 9 · Menüs", photo: "bluehour" },
-        { caps: "MIT DEM BOOT", script: "am eigenen Steg", body: "Vier Liegeplätze für Gäste, bis zu vier Stunden kostenlos. Vorher anrufen oder UKW-Kanal 17.", meta: "Bis 4 Stunden kostenlos", photo: "boat" },
+        { caps: "MIT DEM BOOT", script: "an unserem Steg", body: "Vier Liegeplätze für Gäste, bis zu vier Stunden kostenlos. Bitte vorher anrufen oder über UKW-Kanal 17 melden.", meta: "Bis 4 Stunden kostenlos", photo: "boat" },
       ],
     },
     drink: {
@@ -198,7 +198,7 @@ export const coast: Record<Locale, CoastDict> = {
       day: { caps: "DER TAG VERWEILT", script: "bis zur goldenen Stunde" },
       night: { caps: "DIE NACHT KOMMT", script: "Kerzen, Wein, Meeresluft" },
     },
-    board: { eyebrow: "HEUTE FRÜH ANGESCHRIEBEN", kicker: "Heute im Plavi Kamen", title: { caps: "FANG DES TAGES", script: "wenn er weg ist, ist er weg" }, hours: "Öffnungszeiten" },
+    board: { eyebrow: "HEUTE FRÜH NOTIERT", kicker: "Heute im Plavi Kamen", title: { caps: "FANG DES TAGES", script: "wenn er weg ist, ist er weg" }, hours: "Öffnungszeiten" },
     cta: { caps: "IHR TISCH WARTET", script: "am Wasser" },
     footer: {
       title: { caps: "DIE WELT VON PLAVI KAMEN", script: "all das, am Meer" },

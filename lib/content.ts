@@ -357,7 +357,7 @@ export const faqs: { q: L; a: L }[] = [
     a: {
       hr: "Naravno. Imamo dječje stolice i manje porcije ribe i tjestenine.",
       en: "Of course. We have high chairs and smaller portions of fish and pasta.",
-      de: "Natürlich. Wir haben Kinderstühle und kleinere Portionen Fisch und Pasta.",
+      de: "Natürlich. Wir haben Kinderhochstühle und kleinere Portionen Fisch und Pasta.",
     },
   },
   {
@@ -393,7 +393,7 @@ export const faqs: { q: L; a: L }[] = [
     a: {
       hr: "Da. Na jelovniku su označena veganska i bezglutenska jela, a kuhinja može prilagoditi većinu ostalih. Recite nam pri rezervaciji ili konobaru.",
       en: "Yes. Vegan and gluten-free dishes are marked on the menu, and the kitchen can adapt most others. Tell us in your booking note or tell your waiter.",
-      de: "Ja. Vegane und glutenfreie Gerichte sind auf der Karte markiert, die Küche passt die meisten anderen an. Sagen Sie es uns bei der Reservierung oder dem Kellner.",
+      de: "Ja. Vegane und glutenfreie Gerichte sind auf der Karte markiert, die Küche passt die meisten anderen an. Geben Sie es bei der Reservierung an oder sagen Sie es unserem Service.",
     },
   },
   {

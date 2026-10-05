@@ -72,7 +72,8 @@ const copy = {
         `Poštovani/a ${n},\n\nnažalost, za traženi termin nemamo slobodan stol. Nazovite nas i pronaći ćemo drugi termin.`,
     },
     details: "Detalji",
-    people: "osoba",
+    // 2–4 osobe, otherwise osoba (1 osoba, 5 osoba, 12 osoba)
+    people: (n: number) => (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? "osobe" : "osoba"),
     seating: "Mjesto",
     group: "Velika grupa",
     note: "Napomena",
@@ -92,7 +93,7 @@ const copy = {
       intro: (n: string) => `Hello ${n},\n\nunfortunately we have no table free at the time you asked for. Call us and we will find another time.`,
     },
     details: "Details",
-    people: "people",
+    people: (n: number) => (n === 1 ? "person" : "people"),
     seating: "Seating",
     group: "Large group",
     note: "Note",
@@ -114,7 +115,7 @@ const copy = {
         `Hallo ${n},\n\nleider ist zur gewünschten Zeit kein Tisch frei. Rufen Sie uns an, dann finden wir einen anderen Termin.`,
     },
     details: "Details",
-    people: "Personen",
+    people: (n: number) => (n === 1 ? "Person" : "Personen"),
     seating: "Platz",
     group: "Große Gruppe",
     note: "Notiz",
@@ -126,7 +127,7 @@ function details(b: Booking, locale: Locale) {
   const c = copy[locale];
   return [
     `${fmtDate(b.date, locale)}, ${b.time}`,
-    `${b.party_size} ${c.people}`,
+    `${b.party_size} ${c.people(b.party_size)}`,
     `${c.seating}: ${seatingWord[locale][b.seating] ?? b.seating}`,
     b.large_group ? c.group : null,
     b.note ? `${c.note}: ${b.note}` : null,

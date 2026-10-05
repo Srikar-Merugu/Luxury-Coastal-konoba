@@ -287,7 +287,7 @@ const hr: Dict = {
       {
         id: "ferry",
         title: "Trajektom",
-        body: "Iz Istre trajektom Brestova – Porozina (20 min). S Krka trajektom Valbiska – Merag (25 min). Od obje luke do Lučice je 35 minuta vožnje. U kolovozu dođite u luku sat ranije.",
+        body: "Iz Istre trajektom Brestova – Porozina (20 min). S Krka trajektom Valbiska – Merag (25 min). Od obiju luka do Lučice je 35 minuta vožnje. U kolovozu dođite u luku sat ranije.",
       },
       {
         id: "bus",
@@ -434,14 +434,14 @@ const de: Dict = {
         time: "19:30",
         title: "Sonnenuntergang und Grill",
         script: "der schönste Tisch der Bucht",
-        body: "Die Sonne sinkt hinter Lošinj, die Glut ist bereit. Reservieren Sie die Terrasse zum Sonnenuntergang rechtzeitig, sie ist zuerst voll.",
+        body: "Die Sonne sinkt hinter Lošinj, die Glut ist bereit. Reservieren Sie die Terrasse zum Sonnenuntergang rechtzeitig, sie ist als Erstes ausgebucht.",
       },
     ],
   },
   catch: {
     eyebrow: "Fang des Tages",
-    updated: (time, by) => `Um ${time} Uhr von ${by} angeschrieben`,
-    soldOut: "aus",
+    updated: (time, by) => `Um ${time} Uhr von ${by} notiert`,
+    soldOut: "ausverkauft",
     footnote: "Der Fisch wird am Tisch gewogen und nach Kilo berechnet.",
   },
   signature: {
@@ -507,7 +507,7 @@ const de: Dict = {
     indoor: "Drinnen, am Kamin",
     noPref: "Egal",
     largeGroup: "Wir sind 9 Personen oder mehr",
-    largeGroupHint: "Wir melden uns mit einem Menüvorschlag und setzen Sie gemeinsam auf die Terrasse.",
+    largeGroupHint: "Wir melden uns mit einem Menüvorschlag und platzieren Sie gemeinsam auf der Terrasse.",
     name: "Name",
     phone: "Telefon",
     email: "E-Mail",
