@@ -63,7 +63,8 @@ const openAiCompatible = (base: string, pinned: string | undefined, prefer: RegE
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({ model, max_tokens: MAX_TOKENS, stream: true, messages: [{ role: "system", content: system }, ...messages] }),
     });
-    if (last.status !== 404 && last.status !== 400) return last; // a missing/unsupported model: try the next one
+    // missing, unsupported, rate-limited or overloaded model: try the provider's next one
+    if (![400, 404, 429, 503].includes(last.status)) return last;
     console.error(`[concierge] model ${model} rejected (${last.status})`);
   }
   return last ?? new Response("no model", { status: 404 });
