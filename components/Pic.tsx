@@ -32,7 +32,7 @@ export function Pic({
       fill
       sizes={sizes}
       priority={priority}
-      fetchPriority={priority ? "high" : undefined}
+      fetchPriority={priority ? "high" : "low"}
       placeholder="blur"
       quality={78}
       className="object-cover"
