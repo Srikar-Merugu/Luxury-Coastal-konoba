@@ -81,6 +81,22 @@ What happens then:
 | `public/photos`, `public/cut`, `public/video` | AI-generated imagery and loops |
 | `public/fonts/README.md` | How to drop in the licensed display fonts |
 
+## Owner and guest features
+
+- **Seats left:** terrace/indoor seats and table time are set in /admin; each time in the
+  booking form shows seats left or "full", and the API refuses requests that no longer fit.
+- **Live coast bar:** Open-Meteo weather, sea temperature and wind (bura/jugo advice) on the
+  home hero and Getting here.
+- **WhatsApp:** guests can send a pre-filled request; the owner can message any guest from
+  /admin in the guest's language.
+- **QR table menus:** `/t/<table>` opens the menu in the phone's language; `/admin/qr` prints
+  cards. Menu has Vegan / Vegetarian / Gluten-free filters.
+- **Owner dashboard:** today's tables, next 7 days, last-30-day stats, CSV export.
+- **Phone alerts:** /admin installs as an app; new requests trigger the `booking-push`
+  Supabase function (web push).
+- **AI concierge:** "Ask us" chat answering from the site's live data (Claude Haiku). Needs
+  `ANTHROPIC_API_KEY`; hidden without it.
+
 ## Live setup
 
 - Supabase project `konoba-plavi-kamen` (eu-central-1, ref `ljszqfwfqkexehkfkywi`): schema and
