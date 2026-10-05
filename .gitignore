@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# raw AI generations (large)
+/media-src
+/.next-build
+
+# local editor/agent config
+/.claude

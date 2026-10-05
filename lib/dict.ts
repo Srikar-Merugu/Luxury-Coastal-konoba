@@ -1,0 +1,559 @@
+import type { Locale, PageKey } from "./i18n";
+
+const en = {
+  nav: { home: "Home", menu: "Menu", book: "Book a table", visit: "Getting here", about: "Our story", faq: "FAQ" },
+  skip: "Skip to content",
+  meta: {
+    home: {
+      title: "Konoba Plavi Kamen | Fish restaurant by the sea, Kvarner",
+      description:
+        "Family konoba on the island of Cres, Kvarner. Fresh fish of the day from the grill, a terrace on the water, open April to October. Book a table online.",
+    },
+    menu: {
+      title: "Menu | Fresh fish and Kvarner seafood | Plavi Kamen",
+      description: "Fish of the day, Kvarner scampi buzara, black risotto, octopus under the peka. Vegan and gluten-free dishes marked. Prices in EUR.",
+    },
+    book: {
+      title: "Book a table on the terrace | Konoba Plavi Kamen",
+      description: "Request a table on our sea terrace or indoors. Large groups welcome. We reply by email, usually within a few hours.",
+    },
+    visit: {
+      title: "Getting here | Parking, ferry and bus to Konoba Plavi Kamen",
+      description: "How to reach Lučica on Cres: parking above the cove, ferry from Brestova or Valbiska, local bus, the walk from the harbour, or by boat.",
+    },
+    about: {
+      title: "Our story | A family konoba since 1987 | Plavi Kamen",
+      description: "Three generations of the Marinić family, one stone house by the sea, and fish that comes in on our own boat each morning.",
+    },
+    faq: {
+      title: "FAQ | Groups, kids, dogs, parking | Konoba Plavi Kamen",
+      description: "Answers to what guests ask before they come: booking, large groups, children, dogs, parking, card payment, allergies and arriving by boat.",
+    },
+  },
+  hero: {
+    arc: "Plavi Kamen · Cres · Kvarner ·",
+    title: "This morning's fish.",
+    titleAccent: "A table by the sea.",
+    sub: "A family konoba in a quiet cove on the island of Cres. We grill what the boat brings in, from April to October.",
+    cta: "Book a table",
+    ctaAlt: "See the menu",
+  },
+  status: {
+    open: (closes: string) => `Open now · until ${closes}`,
+    later: (opens: string) => `Opens today at ${opens}`,
+    closedToday: "Closed today",
+    offSeason: (date: string) => `Closed for the season · back ${date}`,
+    override: "Closed today",
+  },
+  story: {
+    eyebrow: "A day at the konoba",
+    chapters: [
+      {
+        time: "06:30",
+        title: "The boat comes in",
+        script: "before the town wakes",
+        body: "Luka takes the gajeta out at first light. What he brings back is the menu. Nothing frozen, nothing flown in.",
+      },
+      {
+        time: "13:00",
+        title: "Lunch on the terrace",
+        script: "long and slow",
+        body: "Pine shade, cold Žlahtina, scampi in buzara. The terrace sits a step above the water, so you hear the sea between courses.",
+      },
+      {
+        time: "19:30",
+        title: "Sunset and the grill",
+        script: "the best table in the cove",
+        body: "The sun goes down behind Lošinj and the coals are ready. Book the terrace for sunset; it fills first.",
+      },
+    ],
+  },
+  catch: {
+    eyebrow: "Catch of the day",
+    updated: (time: string, by: string) => `Chalked up at ${time} by ${by}`,
+    soldOut: "gone",
+    footnote: "Fish is weighed at the table and priced by the kilo.",
+  },
+  signature: {
+    eyebrow: "From the kitchen",
+    title: "Three plates people come back for",
+    cta: "Full menu",
+  },
+  hours: {
+    eyebrow: "Opening hours",
+    title: "Open April to October",
+    season: "Season",
+    closed: "Closed",
+    weekdays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    winter: "From November to March the konoba is closed and the family goes fishing for themselves.",
+  },
+  visit: {
+    eyebrow: "Getting here",
+    title: "Find the cove",
+    address: "Address",
+    openMap: "Open in Google Maps",
+    blocks: [
+      {
+        id: "car",
+        title: "By car",
+        body: "Park in the public car park above Lučica cove, then take the stone steps down. Three minutes on foot. €2 per hour in July and August, free the rest of the season.",
+      },
+      {
+        id: "ferry",
+        title: "By ferry",
+        body: "From Istria, take the Brestova to Porozina ferry (20 min). From Krk, take Valbiska to Merag (25 min). Lučica is 35 minutes' drive from either port. In August, arrive at the port an hour early.",
+      },
+      {
+        id: "bus",
+        title: "By bus",
+        body: "The island bus from Cres town stops at Lučica crossroads four times a day. From the stop, follow the road downhill for ten minutes.",
+      },
+      {
+        id: "walk",
+        title: "From the harbour",
+        body: "From the Lučica harbour, follow the stone path along the water past the little chapel. We are the stone house with blue shutters, six minutes on foot.",
+      },
+      {
+        id: "boat",
+        title: "By boat",
+        body: "Four berths on our pier for guests, free for up to four hours. Call ahead or hail us on VHF channel 17.",
+      },
+    ],
+  },
+  bookingCta: {
+    title: "Your table on the water",
+    body: "Send a request. We confirm by email, usually within a few hours.",
+    cta: "Book a table",
+  },
+  book: {
+    eyebrow: "Book a table",
+    title: "Request a table",
+    intro: "Tell us when you are coming and where you would like to sit. This is a request, not an instant booking: we confirm by email, usually within a few hours.",
+    date: "Date",
+    time: "Time",
+    party: "Guests",
+    seating: "Where would you like to sit?",
+    terrace: "Terrace by the sea",
+    indoor: "Indoors, by the hearth",
+    noPref: "No preference",
+    largeGroup: "We are a group of 9 or more",
+    largeGroupHint: "We will reply with a set menu suggestion and seat you together on the terrace.",
+    name: "Name",
+    phone: "Phone",
+    email: "Email",
+    note: "Anything we should know?",
+    notePlaceholder: "Allergies, a birthday, arriving by boat…",
+    submit: "Send request",
+    sending: "Sending…",
+    successTitle: "Request received",
+    successBody: "Thank you. We have your request and will email you to confirm your table.",
+    error: "Something went wrong. Please try again or call us.",
+    required: "Please fill in this field",
+    offSeason: "We are closed for the season. Requests open for dates from 1 April.",
+    orCall: "Prefer to call?",
+    closedDay: "We are closed on that day. Please pick another date.",
+  },
+  about: {
+    eyebrow: "Our story",
+    title: "One stone house, three generations",
+    paragraphs: [
+      "In 1987 Ante Marinić turned the ground floor of his stone house into a konoba with four tables and one grill. He fished in the morning and cooked in the evening. The menu was whatever the sea gave him.",
+      "Today his daughter Vesna runs the kitchen and his grandson Luka runs the boat. The tables now spill out onto a terrace above the water, but the rule has not changed: we cook what came in that morning, simply, over olive wood.",
+      "The olive oil is from our own grove behind the house. The bread is baked every afternoon. The wine comes from small cellars on Krk and Cres. We open when the season starts, and we close when the bura comes in November.",
+    ],
+    people: [
+      { name: "Vesna Marinić", role: "Kitchen" },
+      { name: "Luka Marinić", role: "Boat and grill" },
+      { name: "Ante Marinić", role: "Founder, still at table 4" },
+    ],
+  },
+  faq: { eyebrow: "Questions", title: "Before you come" },
+  menuPage: {
+    eyebrow: "Menu",
+    title: "What we cook",
+    intro: "The fish changes every day with the catch. Prices in euro, VAT included. Ask us about allergies; the kitchen adapts most dishes.",
+    signature: "House favourite",
+    tags: { vegan: "Vegan", vegetarian: "Vegetarian", "gluten-free": "Gluten-free" },
+  },
+  footer: {
+    tagline: "Fish, fire and the sea. Lučica, island of Cres.",
+    demo: "Demo concept by Kyro Studio",
+    pages: "Pages",
+    contact: "Contact",
+    language: "Language",
+  },
+};
+
+export type Dict = typeof en;
+
+const hr: Dict = {
+  nav: { home: "Početna", menu: "Jelovnik", book: "Rezervacija", visit: "Kako do nas", about: "O nama", faq: "Pitanja" },
+  skip: "Preskoči na sadržaj",
+  meta: {
+    home: {
+      title: "Konoba Plavi Kamen | Riblji restoran uz more, Kvarner",
+      description:
+        "Obiteljska konoba na otoku Cresu. Svježa riba dana s gradela, terasa uz more, otvoreno od travnja do listopada. Rezervirajte stol online.",
+    },
+    menu: {
+      title: "Jelovnik | Svježa riba i kvarnerski plodovi mora | Plavi Kamen",
+      description: "Riba dana, kvarnerski škampi na buzaru, crni rižot, hobotnica ispod peke. Označena veganska i bezglutenska jela. Cijene u eurima.",
+    },
+    book: {
+      title: "Rezervirajte stol na terasi | Konoba Plavi Kamen",
+      description: "Pošaljite upit za stol na terasi uz more ili unutra. Veće grupe su dobrodošle. Odgovaramo e-poštom, obično u nekoliko sati.",
+    },
+    visit: {
+      title: "Kako do nas | Parking, trajekt i autobus | Konoba Plavi Kamen",
+      description: "Kako doći u Lučicu na Cresu: parking iznad uvale, trajekt iz Brestove ili Valbiske, otočni autobus, pješice iz luke ili brodom.",
+    },
+    about: {
+      title: "O nama | Obiteljska konoba od 1987. | Plavi Kamen",
+      description: "Tri generacije obitelji Marinić, jedna kamena kuća uz more i riba koja svako jutro stiže našim brodom.",
+    },
+    faq: {
+      title: "Česta pitanja | Grupe, djeca, psi, parking | Plavi Kamen",
+      description: "Odgovori na pitanja gostiju: rezervacija, veće grupe, djeca, psi, parking, plaćanje karticom, alergije i dolazak brodom.",
+    },
+  },
+  hero: {
+    arc: "Plavi Kamen · Cres · Kvarner ·",
+    title: "Riba od jutros.",
+    titleAccent: "Stol uz more.",
+    sub: "Obiteljska konoba u mirnoj uvali na otoku Cresu. Na gradele ide ono što brod donese, od travnja do listopada.",
+    cta: "Rezervirajte stol",
+    ctaAlt: "Pogledajte jelovnik",
+  },
+  status: {
+    open: (closes) => `Sada otvoreno · do ${closes}`,
+    later: (opens) => `Danas otvaramo u ${opens}`,
+    closedToday: "Danas zatvoreno",
+    offSeason: (date) => `Zatvoreno do sezone · vidimo se ${date}`,
+    override: "Danas zatvoreno",
+  },
+  story: {
+    eyebrow: "Dan u konobi",
+    chapters: [
+      {
+        time: "06:30",
+        title: "Brod se vraća",
+        script: "prije nego se mjesto probudi",
+        body: "Luka izlazi gajetom u zoru. Ono što donese, to je jelovnik. Ništa smrznuto, ništa dovezeno izdaleka.",
+      },
+      {
+        time: "13:00",
+        title: "Ručak na terasi",
+        script: "dugo i polako",
+        body: "Hlad borova, hladna žlahtina, škampi na buzaru. Terasa je korak iznad mora pa između jela čujete valove.",
+      },
+      {
+        time: "19:30",
+        title: "Zalazak i gradele",
+        script: "najbolji stol u uvali",
+        body: "Sunce zalazi iza Lošinja, žar je spreman. Terasu za zalazak rezervirajte na vrijeme, prva se popuni.",
+      },
+    ],
+  },
+  catch: {
+    eyebrow: "Ulov dana",
+    updated: (time, by) => `Zapisao ${by} u ${time}`,
+    soldOut: "nema više",
+    footnote: "Riba se važe za stolom i naplaćuje po kilogramu.",
+  },
+  signature: {
+    eyebrow: "Iz kuhinje",
+    title: "Tri jela zbog kojih se gosti vraćaju",
+    cta: "Cijeli jelovnik",
+  },
+  hours: {
+    eyebrow: "Radno vrijeme",
+    title: "Otvoreno od travnja do listopada",
+    season: "Sezona",
+    closed: "Zatvoreno",
+    weekdays: ["Nedjelja", "Ponedjeljak", "Utorak", "Srijeda", "Četvrtak", "Petak", "Subota"],
+    winter: "Od studenog do ožujka konoba je zatvorena, a obitelj ide u ribu za sebe.",
+  },
+  visit: {
+    eyebrow: "Kako do nas",
+    title: "Pronađite uvalu",
+    address: "Adresa",
+    openMap: "Otvori u Google kartama",
+    blocks: [
+      {
+        id: "car",
+        title: "Automobilom",
+        body: "Parkirajte na javnom parkiralištu iznad uvale Lučica i spustite se kamenim stubama. Tri minute pješice. U srpnju i kolovozu 2 € na sat, ostatak sezone besplatno.",
+      },
+      {
+        id: "ferry",
+        title: "Trajektom",
+        body: "Iz Istre trajektom Brestova – Porozina (20 min). S Krka trajektom Valbiska – Merag (25 min). Od obje luke do Lučice je 35 minuta vožnje. U kolovozu dođite u luku sat ranije.",
+      },
+      {
+        id: "bus",
+        title: "Autobusom",
+        body: "Otočni autobus iz grada Cresa staje na raskrižju za Lučicu četiri puta dnevno. Od stanice slijedite cestu nizbrdo deset minuta.",
+      },
+      {
+        id: "walk",
+        title: "Iz luke",
+        body: "Od luke Lučica slijedite kamenu stazu uz more pored male kapelice. Mi smo kamena kuća s plavim škurama, šest minuta pješice.",
+      },
+      {
+        id: "boat",
+        title: "Brodom",
+        body: "Četiri veza na našem molu za goste konobe, besplatno do četiri sata. Najavite se telefonom ili na VHF kanalu 17.",
+      },
+    ],
+  },
+  bookingCta: {
+    title: "Vaš stol uz more",
+    body: "Pošaljite upit. Potvrđujemo e-poštom, obično u nekoliko sati.",
+    cta: "Rezervirajte stol",
+  },
+  book: {
+    eyebrow: "Rezervacija",
+    title: "Upit za stol",
+    intro: "Recite nam kada dolazite i gdje biste željeli sjediti. Ovo je upit, a ne trenutna rezervacija: potvrđujemo e-poštom, obično u nekoliko sati.",
+    date: "Datum",
+    time: "Vrijeme",
+    party: "Broj osoba",
+    seating: "Gdje biste željeli sjediti?",
+    terrace: "Na terasi uz more",
+    indoor: "Unutra, uz ognjište",
+    noPref: "Svejedno",
+    largeGroup: "Dolazimo u grupi od 9 ili više osoba",
+    largeGroupHint: "Javit ćemo vam se s prijedlogom menija i smjestiti vas zajedno na terasi.",
+    name: "Ime i prezime",
+    phone: "Telefon",
+    email: "E-pošta",
+    note: "Nešto što trebamo znati?",
+    notePlaceholder: "Alergije, rođendan, dolazak brodom…",
+    submit: "Pošalji upit",
+    sending: "Šaljem…",
+    successTitle: "Upit je zaprimljen",
+    successBody: "Hvala. Zaprimili smo vaš upit i javit ćemo vam se e-poštom s potvrdom stola.",
+    error: "Nešto nije u redu. Pokušajte ponovno ili nas nazovite.",
+    required: "Molimo ispunite ovo polje",
+    offSeason: "Zatvoreni smo do sezone. Upite primamo za datume od 1. travnja.",
+    orCall: "Radije biste nazvali?",
+    closedDay: "Taj dan ne radimo. Molimo odaberite drugi datum.",
+  },
+  about: {
+    eyebrow: "O nama",
+    title: "Jedna kamena kuća, tri generacije",
+    paragraphs: [
+      "Godine 1987. Ante Marinić pretvorio je prizemlje svoje kamene kuće u konobu s četiri stola i jednim gradelama. Ujutro je lovio, navečer kuhao. Jelovnik je bio ono što je more dalo.",
+      "Danas kuhinju vodi njegova kći Vesna, a brod unuk Luka. Stolovi su se proširili na terasu iznad mora, ali pravilo je ostalo isto: kuhamo ono što je stiglo tog jutra, jednostavno, na žaru od maslinovog drva.",
+      "Maslinovo ulje je iz našeg maslinika iza kuće. Kruh se peče svako popodne. Vino dolazi iz malih podruma na Krku i Cresu. Otvaramo kad počne sezona, a zatvaramo kad u studenom dođe bura.",
+    ],
+    people: [
+      { name: "Vesna Marinić", role: "Kuhinja" },
+      { name: "Luka Marinić", role: "Brod i gradele" },
+      { name: "Ante Marinić", role: "Osnivač, i dalje za stolom 4" },
+    ],
+  },
+  faq: { eyebrow: "Pitanja", title: "Prije nego dođete" },
+  menuPage: {
+    eyebrow: "Jelovnik",
+    title: "Što kuhamo",
+    intro: "Riba se mijenja svaki dan, ovisno o ulovu. Cijene su u eurima, PDV uključen. Pitajte nas za alergije, kuhinja prilagođava većinu jela.",
+    signature: "Najdraže gostima",
+    tags: { vegan: "Vegansko", vegetarian: "Vegetarijansko", "gluten-free": "Bez glutena" },
+  },
+  footer: {
+    tagline: "Riba, žar i more. Lučica, otok Cres.",
+    demo: "Demo koncept: Kyro Studio",
+    pages: "Stranice",
+    contact: "Kontakt",
+    language: "Jezik",
+  },
+};
+
+const de: Dict = {
+  nav: { home: "Start", menu: "Speisekarte", book: "Tisch reservieren", visit: "Anfahrt", about: "Über uns", faq: "FAQ" },
+  skip: "Zum Inhalt springen",
+  meta: {
+    home: {
+      title: "Konoba Plavi Kamen | Fischrestaurant am Meer, Kvarner",
+      description:
+        "Familien-Konoba auf der Insel Cres in der Kvarner Bucht. Fangfrischer Fisch vom Grill, Terrasse direkt am Wasser, geöffnet April bis Oktober. Jetzt Tisch reservieren.",
+    },
+    menu: {
+      title: "Speisekarte | Frischer Fisch und Meeresfrüchte | Plavi Kamen",
+      description: "Fisch des Tages, Kvarner-Scampi Buzara, schwarzes Risotto, Oktopus unter der Peka. Vegane und glutenfreie Gerichte markiert. Preise in Euro.",
+    },
+    book: {
+      title: "Tisch auf der Terrasse reservieren | Konoba Plavi Kamen",
+      description: "Fragen Sie einen Tisch auf der Meerterrasse oder drinnen an. Große Gruppen willkommen. Wir antworten per E-Mail, meist innerhalb weniger Stunden.",
+    },
+    visit: {
+      title: "Anfahrt | Parken, Fähre und Bus zur Konoba Plavi Kamen",
+      description: "So kommen Sie nach Lučica auf Cres: Parkplatz oberhalb der Bucht, Fähre ab Brestova oder Valbiska, Inselbus, zu Fuß vom Hafen oder mit dem Boot.",
+    },
+    about: {
+      title: "Über uns | Familien-Konoba seit 1987 | Plavi Kamen",
+      description: "Drei Generationen der Familie Marinić, ein Steinhaus am Meer und Fisch, der jeden Morgen mit unserem eigenen Boot kommt.",
+    },
+    faq: {
+      title: "FAQ | Gruppen, Kinder, Hunde, Parken | Konoba Plavi Kamen",
+      description: "Antworten auf Fragen vor Ihrem Besuch: Reservierung, große Gruppen, Kinder, Hunde, Parken, Kartenzahlung, Allergien und Anreise mit dem Boot.",
+    },
+  },
+  hero: {
+    arc: "Plavi Kamen · Cres · Kvarner ·",
+    title: "Fisch von heute früh.",
+    titleAccent: "Ein Tisch am Meer.",
+    sub: "Eine Familien-Konoba in einer ruhigen Bucht auf der Insel Cres. Auf den Grill kommt, was das Boot bringt. Von April bis Oktober.",
+    cta: "Tisch reservieren",
+    ctaAlt: "Zur Speisekarte",
+  },
+  status: {
+    open: (closes) => `Jetzt geöffnet · bis ${closes} Uhr`,
+    later: (opens) => `Heute ab ${opens} Uhr geöffnet`,
+    closedToday: "Heute Ruhetag",
+    offSeason: (date) => `Saisonpause · wieder ab ${date}`,
+    override: "Heute geschlossen",
+  },
+  story: {
+    eyebrow: "Ein Tag in der Konoba",
+    chapters: [
+      {
+        time: "06:30",
+        title: "Das Boot kommt zurück",
+        script: "bevor der Ort erwacht",
+        body: "Luka fährt im ersten Licht mit der Gajeta hinaus. Was er mitbringt, ist die Speisekarte. Nichts Tiefgekühltes, nichts Eingeflogenes.",
+      },
+      {
+        time: "13:00",
+        title: "Mittag auf der Terrasse",
+        script: "lang und gemütlich",
+        body: "Pinienschatten, kühler Žlahtina, Scampi Buzara. Die Terrasse liegt eine Stufe über dem Wasser, zwischen den Gängen hört man das Meer.",
+      },
+      {
+        time: "19:30",
+        title: "Sonnenuntergang und Grill",
+        script: "der schönste Tisch der Bucht",
+        body: "Die Sonne sinkt hinter Lošinj, die Glut ist bereit. Reservieren Sie die Terrasse zum Sonnenuntergang rechtzeitig, sie ist zuerst voll.",
+      },
+    ],
+  },
+  catch: {
+    eyebrow: "Fang des Tages",
+    updated: (time, by) => `Um ${time} Uhr von ${by} angeschrieben`,
+    soldOut: "aus",
+    footnote: "Der Fisch wird am Tisch gewogen und nach Kilo berechnet.",
+  },
+  signature: {
+    eyebrow: "Aus der Küche",
+    title: "Drei Gerichte, für die Gäste wiederkommen",
+    cta: "Ganze Speisekarte",
+  },
+  hours: {
+    eyebrow: "Öffnungszeiten",
+    title: "Geöffnet von April bis Oktober",
+    season: "Saison",
+    closed: "Ruhetag",
+    weekdays: ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"],
+    winter: "Von November bis März ist die Konoba geschlossen, dann fischt die Familie für sich selbst.",
+  },
+  visit: {
+    eyebrow: "Anfahrt",
+    title: "So finden Sie die Bucht",
+    address: "Adresse",
+    openMap: "In Google Maps öffnen",
+    blocks: [
+      {
+        id: "car",
+        title: "Mit dem Auto",
+        body: "Parken Sie auf dem öffentlichen Parkplatz oberhalb der Bucht Lučica und gehen Sie die Steinstufen hinunter. Drei Minuten zu Fuß. Im Juli und August 2 € pro Stunde, sonst kostenlos.",
+      },
+      {
+        id: "ferry",
+        title: "Mit der Fähre",
+        body: "Aus Istrien mit der Fähre Brestova – Porozina (20 Min.). Von Krk mit der Fähre Valbiska – Merag (25 Min.). Von beiden Häfen sind es 35 Minuten Fahrt nach Lučica. Im August eine Stunde früher am Hafen sein.",
+      },
+      {
+        id: "bus",
+        title: "Mit dem Bus",
+        body: "Der Inselbus ab Cres-Stadt hält viermal täglich an der Abzweigung Lučica. Von dort zehn Minuten die Straße bergab.",
+      },
+      {
+        id: "walk",
+        title: "Vom Hafen",
+        body: "Vom Hafen Lučica folgen Sie dem Steinweg am Wasser entlang an der kleinen Kapelle vorbei. Wir sind das Steinhaus mit den blauen Fensterläden, sechs Minuten zu Fuß.",
+      },
+      {
+        id: "boat",
+        title: "Mit dem Boot",
+        body: "Vier Liegeplätze an unserem Steg für Gäste, bis zu vier Stunden kostenlos. Bitte vorher anrufen oder über UKW-Kanal 17 melden.",
+      },
+    ],
+  },
+  bookingCta: {
+    title: "Ihr Tisch am Wasser",
+    body: "Schicken Sie uns eine Anfrage. Wir bestätigen per E-Mail, meist innerhalb weniger Stunden.",
+    cta: "Tisch reservieren",
+  },
+  book: {
+    eyebrow: "Reservierung",
+    title: "Tisch anfragen",
+    intro: "Sagen Sie uns, wann Sie kommen und wo Sie sitzen möchten. Dies ist eine Anfrage, keine Sofortbuchung: Wir bestätigen per E-Mail, meist innerhalb weniger Stunden.",
+    date: "Datum",
+    time: "Uhrzeit",
+    party: "Personen",
+    seating: "Wo möchten Sie sitzen?",
+    terrace: "Auf der Terrasse am Meer",
+    indoor: "Drinnen, am Kamin",
+    noPref: "Egal",
+    largeGroup: "Wir sind 9 Personen oder mehr",
+    largeGroupHint: "Wir melden uns mit einem Menüvorschlag und setzen Sie gemeinsam auf die Terrasse.",
+    name: "Name",
+    phone: "Telefon",
+    email: "E-Mail",
+    note: "Gibt es etwas, das wir wissen sollten?",
+    notePlaceholder: "Allergien, Geburtstag, Anreise mit dem Boot…",
+    submit: "Anfrage senden",
+    sending: "Wird gesendet…",
+    successTitle: "Anfrage erhalten",
+    successBody: "Vielen Dank. Wir haben Ihre Anfrage erhalten und bestätigen Ihren Tisch per E-Mail.",
+    error: "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut oder rufen Sie uns an.",
+    required: "Bitte füllen Sie dieses Feld aus",
+    offSeason: "Wir sind in der Saisonpause. Anfragen sind für Termine ab dem 1. April möglich.",
+    orCall: "Lieber anrufen?",
+    closedDay: "An diesem Tag haben wir Ruhetag. Bitte wählen Sie ein anderes Datum.",
+  },
+  about: {
+    eyebrow: "Über uns",
+    title: "Ein Steinhaus, drei Generationen",
+    paragraphs: [
+      "1987 machte Ante Marinić aus dem Erdgeschoss seines Steinhauses eine Konoba mit vier Tischen und einem Grill. Morgens fischte er, abends kochte er. Auf der Karte stand, was das Meer hergab.",
+      "Heute führt seine Tochter Vesna die Küche und sein Enkel Luka das Boot. Die Tische stehen inzwischen auf einer Terrasse über dem Wasser, doch die Regel ist geblieben: Wir kochen, was am Morgen hereinkam, einfach, über Olivenholz.",
+      "Das Olivenöl stammt aus unserem Hain hinter dem Haus. Das Brot wird jeden Nachmittag gebacken. Der Wein kommt aus kleinen Kellern auf Krk und Cres. Wir öffnen, wenn die Saison beginnt, und schließen, wenn im November die Bora kommt.",
+    ],
+    people: [
+      { name: "Vesna Marinić", role: "Küche" },
+      { name: "Luka Marinić", role: "Boot und Grill" },
+      { name: "Ante Marinić", role: "Gründer, immer noch an Tisch 4" },
+    ],
+  },
+  faq: { eyebrow: "Fragen", title: "Bevor Sie kommen" },
+  menuPage: {
+    eyebrow: "Speisekarte",
+    title: "Was wir kochen",
+    intro: "Der Fisch wechselt täglich mit dem Fang. Preise in Euro inklusive MwSt. Fragen Sie uns nach Allergien, die Küche passt die meisten Gerichte an.",
+    signature: "Hausfavorit",
+    tags: { vegan: "Vegan", vegetarian: "Vegetarisch", "gluten-free": "Glutenfrei" },
+  },
+  footer: {
+    tagline: "Fisch, Feuer und das Meer. Lučica, Insel Cres.",
+    demo: "Demo-Konzept von Kyro Studio",
+    pages: "Seiten",
+    contact: "Kontakt",
+    language: "Sprache",
+  },
+};
+
+const dicts: Record<Locale, Dict> = { en, hr, de };
+export const getDict = (locale: Locale) => dicts[locale];
+export type MetaKey = PageKey;
