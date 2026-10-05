@@ -71,7 +71,7 @@ export function Hours({ locale }: { locale: Locale }) {
                           {t.weekdays[r.from]}
                           {r.from !== r.to && ` – ${t.weekdays[r.to]}`}
                         </dt>
-                        <dd className="tabular-nums">{r.value ? `${r.value[0]} – ${r.value[1]}` : <span className="text-coral">{t.closed}</span>}</dd>
+                        <dd className="tabular-nums">{r.value ? `${r.value[0]} – ${r.value[1]}` : <span className="text-[#f0a08a]">{t.closed}</span>}</dd>
                       </div>
                     ))}
                   </dl>
